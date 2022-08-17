@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: emmanuelkoechloanwebapp 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emmanuelkoechloanwebapp
+  template:
+    metadata:
+      labels:
+        app: emmanuelkoechloanwebapp 
+    spec:
+      containers:
+        - name: emmanuelkoechloanwebapp 
+          image: myloancontainerregistry.azurecr.io/emmanuelkoechloanwebapp
+          ports:
+          - containerPort: 8080
