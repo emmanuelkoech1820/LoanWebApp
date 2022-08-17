@@ -7,9 +7,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src
-COPY ["Loan.API/Loan.API.csproj", "Loan.API/"]
-COPY ["Loan.Core/Loan.Core.csproj", "Loan.Core/"]
-COPY ["Loan.Data/Loan.Data.csproj", "Loan.Data/"]
+COPY Loan.API/Loan.API.csproj Loan.API/
+COPY Loan.Core/Loan.Core.csproj Loan.Core/
+COPY Loan.Data/Loan.Data.csproj Loan.Data/
 RUN dotnet restore "Loan.API/Loan.API.csproj"
 COPY . .
 WORKDIR "/src/Loan.API"
