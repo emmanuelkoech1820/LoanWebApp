@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.32804.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loan.API", "Loan.API\Loan.API.csproj", "{D09D478B-DB69-4712-ACE6-CB05D799D40D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loan.Core", "Loan.Core\Loan.Core.csproj", "{CA8A6534-B6EC-4320-8ABC-EA2FCD78AEA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loan.Data", "Loan.Data\Loan.Data.csproj", "{61321306-D381-4E18-AA32-59914CACF1B7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D09D478B-DB69-4712-ACE6-CB05D799D40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D09D478B-DB69-4712-ACE6-CB05D799D40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D09D478B-DB69-4712-ACE6-CB05D799D40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D09D478B-DB69-4712-ACE6-CB05D799D40D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA8A6534-B6EC-4320-8ABC-EA2FCD78AEA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA8A6534-B6EC-4320-8ABC-EA2FCD78AEA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA8A6534-B6EC-4320-8ABC-EA2FCD78AEA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA8A6534-B6EC-4320-8ABC-EA2FCD78AEA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61321306-D381-4E18-AA32-59914CACF1B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61321306-D381-4E18-AA32-59914CACF1B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61321306-D381-4E18-AA32-59914CACF1B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61321306-D381-4E18-AA32-59914CACF1B7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C1933D3-AB40-4062-84D6-19A435CB9ECC}
+	EndGlobalSection
+EndGlobal
