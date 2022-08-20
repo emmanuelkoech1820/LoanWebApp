@@ -21,5 +21,4 @@
     <ProjectReference Include="..\Loan.Core\Loan.Core.csproj" />
     <ProjectReference Include="..\Loan.Data\Loan.Data.csproj" />
   </ItemGroup>
-
 </Project>
