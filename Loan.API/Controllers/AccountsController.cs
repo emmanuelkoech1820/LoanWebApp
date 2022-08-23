@@ -92,6 +92,11 @@ namespace WebApi.Controllers
             }
             return BadRequest(response);
         }
+        [HttpGet("ping")]
+        public IActionResult Ping(RegisterRequest model)
+        {
+            return Ok("Loan App is running");
+        }
 
         [HttpPost("verify-email")]
         public IActionResult VerifyEmail(VerifyEmailRequest model)
