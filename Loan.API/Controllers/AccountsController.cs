@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -93,7 +94,8 @@ namespace WebApi.Controllers
             return BadRequest(response);
         }
         [HttpGet("ping")]
-        public IActionResult Ping(RegisterRequest model)
+        [AllowAnonymous]
+        public IActionResult Ping()
         {
             return Ok("Loan App is running");
         }
