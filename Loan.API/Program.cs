@@ -14,8 +14,8 @@ namespace WebApi
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>()
-                        .UseUrls("http://*:8050");
+                    webBuilder.UseStartup<Startup>();
+                        //.UseUrls("http://*:8050");
                 });
     }
 }
