@@ -12,6 +12,7 @@ namespace WebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class AccountsController : BaseController
     {
         private readonly IAccountService _accountService;

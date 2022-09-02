@@ -148,8 +148,8 @@ namespace Apps.Core.Core
                 request.Status = BankTransferStatus.FAILED;
                 return new ServiceResponse
                 {
-                    StatusCode = ServiceStatusCode.TRANSACTION_FAILED,
-                    StatusMessage = StatusMessage.TRANSFER_FAILED
+                    StatusCode = result?.StatusCode ?? ServiceStatusCode.TRANSACTION_FAILED,
+                    StatusMessage = result?.StatusMessage ??  StatusMessage.TRANSFER_FAILED
                 };
                
             }

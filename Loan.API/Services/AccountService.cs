@@ -398,7 +398,7 @@ namespace WebApi.Services
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
+                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()), new Claim("NationalId", account.IdNumber.ToString()), new Claim("id", account.Id.ToString()) }),
                 Expires = DateTime.UtcNow.AddMinutes(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

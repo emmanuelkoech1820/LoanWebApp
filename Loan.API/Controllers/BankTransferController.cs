@@ -2,17 +2,21 @@
 using Apps.Core.Models;
 using Apps.Data.Entities;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebApi.Const;
 using WebApi.Consts;
 using WebApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Net;
 
 namespace WebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class BankTransferController : BaseController
     {
         private readonly IAccountService _accountService;
@@ -45,22 +49,23 @@ namespace WebApi.Controllers
 
                 };
             }
-            await Complete(responses);
-            if (!response.Successful)
-            {
-                return new ServiceResponse
-                {
-                    StatusCode = response.StatusCode,
-                    StatusMessage = response.StatusMessage,
+            return (await Complete(responses));
 
-                };
-            }
-            return new ServiceResponse
-            {
-                StatusCode = ServiceStatusCode.SUCCESSFUL,
-                StatusMessage = StatusMessage.SUCCESSFUl,
+            //if (!response.Successful)
+            //{
+            //    return new ServiceResponse
+            //    {
+            //        StatusCode = response.StatusCode,
+            //        StatusMessage = response.StatusMessage,
 
-            };
+            //    };
+            //}
+            //return new ServiceResponse
+            //{
+            //    StatusCode = ServiceStatusCode.SUCCESSFUL,
+            //    StatusMessage = StatusMessage.SUCCESSFUl,
+
+            //};
 
         }
         [HttpPost("Complete")]
@@ -87,7 +92,7 @@ namespace WebApi.Controllers
         [HttpPost("applyloan")]
         public async Task<ServiceResponse> InitiateLoanTransaction(LoanBindingModel model)
         {
-
+            var a = CurrentUser;
             var response = await _bankTransferManager.InitiateLoanRequest(model);
             var responses = response.ResponseObject;
 
