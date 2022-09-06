@@ -21,7 +21,10 @@ namespace WebApi.Middleware
             _next = next;
             _appSettings = appSettings.Value;
         }
+        public JwtMiddleware(HttpContext context)
+        {
 
+        }
         public async Task Invoke(HttpContext context, DataContext dataContext)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
@@ -54,8 +57,39 @@ namespace WebApi.Middleware
                 // attach account to context on successful jwt validation
                 context.Items["Account"] = await dataContext.Accounts.FindAsync(accountId);
             }
-            catch 
+            catch
             {
+                // do nothing if jwt validation fails
+                // account is not attached to context so request won't have access to secure routes
+            }
+
+        }
+        public async Task<SecurityToken> Token(HttpContext context)
+        {
+            try
+            {
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                return (JwtSecurityToken)validatedToken;
+                //var accountId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+
+                //// attach account to context on successful jwt validation
+                //context.Items["Account"] = await dataContext.Accounts.FindAsync(accountId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
                 // do nothing if jwt validation fails
                 // account is not attached to context so request won't have access to secure routes
             }

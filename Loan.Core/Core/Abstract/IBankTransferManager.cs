@@ -10,7 +10,7 @@ namespace Apps.Core.Abstract
     public interface IBankTransferManager
     {
         Task<ServiceResponse<BankTransferRequest>> GetBankTransferRequest(string reference);
-        Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests(string reference = "", int StatusKey = 0);
+        Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests(string profileId);
         Task<ServiceResponse> ValidateRequest(BankTransferRequest request);
         Task<ServiceResponse> AddVehicle(VehicleBindingModel request);
         Task<ServiceResponse<BankTransferRequest>> InitiateRequest(BankTransferBinding request);

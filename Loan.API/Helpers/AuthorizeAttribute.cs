@@ -17,6 +17,8 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
         _roles = roles ?? new Role[] { };
     }
 
+    public string AuthenticationSchemes { get; set; }
+
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         var account = (Account)context.HttpContext.Items["Account"];

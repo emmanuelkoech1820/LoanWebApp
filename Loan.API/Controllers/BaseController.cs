@@ -192,7 +192,7 @@ namespace WebApi.Controllers
 
     public class OmniClaims
     {
-        public const string Id = "Id";
+        public const string Id = "id";
         public const string CUSTOMER_ID = "customerId";
         public const string USERNAME = "username";
         public const string COUNTRY_CODE = "countryCode";

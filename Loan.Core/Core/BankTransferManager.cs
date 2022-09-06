@@ -74,7 +74,7 @@ namespace Apps.Core.Core
                 ResponseObject = result
             };
         }
-        public async Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests(string reference, int statusKey)
+        public async Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests(string reference)
         {
             //var result = string.IsNullOrWhiteSpace(reference) ? await _context.LoanAccount.Where(c=> c.LoanAprroved == (DisbursmentStatus)statusKey).ToListAsync() :
             //                                                    await _context.LoanAccount.Where(c=> c.Reference == reference).ToListAsync();
@@ -86,12 +86,21 @@ namespace Apps.Core.Core
             //        StatusMessage = StatusMessage.REQUEST_NOT_FOUND
             //    };
             //}
+            var result = await _context.LoanAccount.Where(c => c.ProfileId == reference).ToListAsync();
+            if (result == null)
+            {
+                return new ServiceResponse<List<LoanAccount>>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.REQUEST_NOT_FOUND
+                };
+            };
             return new ServiceResponse<List<LoanAccount>>
             {
 
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
                 StatusMessage = StatusMessage.SUCCESSFUl,
-                //ResponseObject = result
+                ResponseObject = result
             };
         }
 
@@ -274,6 +283,7 @@ namespace Apps.Core.Core
                 Reference = model.Reference,
                 DestinationBankCode = model.DestinationBankCode,
                 RepaymentPeriod = model.RepaymentPeriod,
+                ProfileId = model.ProfileId,
                 LoanHistories = new List<LoanHistory>
                 {
                     new LoanHistory
@@ -320,6 +330,7 @@ namespace Apps.Core.Core
             loanRequest.ResponseObject.DisbursmentStatus = model.Status;
             loanRequest.ResponseObject.DestinationAccount = model.DestinationAccount;
             loanRequest.ResponseObject.LoanAprroved = model.LoanApprovalStatus;
+
 
             _context.Update(loanRequest.ResponseObject);
             var result = _context.SaveChanges();

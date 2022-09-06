@@ -15,6 +15,7 @@ namespace Apps.Core.Models
         public int RepaymentPeriod { get; set; }
         public string Narration { get; set; }
         public string LoanReason { get; set; }
+        public string ProfileId { get; set; }
     }
     public class LoanApproval : LoanBindingModel
     {
@@ -22,6 +23,7 @@ namespace Apps.Core.Models
         public bool LoanApprovalStatus { get; set; }
 
         public DisbursmentStatus Status { get; set; }
+       
     }
     public class VehicleBindingModel
     {
