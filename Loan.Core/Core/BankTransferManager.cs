@@ -170,6 +170,16 @@ namespace Apps.Core.Core
 
             var loanRequest = await GetLoanRequest(request.Reference);
             loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed;
+            _context.Update(loanRequest.ResponseObject);
+            var results = _context.SaveChanges();
+            if (results < 1)
+            {
+                return new ServiceResponse<LoanAccount>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.TRANSFER_FAILED
+                };
+            }
             request.Status = BankTransferStatus.SUCCESSFUL;
             return new ServiceResponse
             {
