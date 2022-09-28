@@ -23,7 +23,7 @@ namespace Apps.Data.Helpers
             // connect to sqlite database
             var connection = Configuration.GetConnectionString("WebApiDatabase");
             options.UseSqlServer(connection);
-            options.UseSqlServer(connection, b => b.MigrationsAssembly("WebApi"));
+            options.UseSqlServer(connection, b => b.MigrationsAssembly("Loan.API"));
         }
     }
 }
