@@ -10,6 +10,7 @@ using Core.Const;
 using Core.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -302,7 +303,9 @@ namespace Apps.Core.Core
                         Action = "Initiate",
                         PerformedBy = "customer"
                     }
-                }
+                },
+                VehicleReferenceNumber = model.VehicleReferenceNumber,
+                VehicleRegistrationNumber = model.VehicleRegistrationNumber
             };
 
             _context.Update(request.ResponseObject);
@@ -373,7 +376,8 @@ namespace Apps.Core.Core
                 VehicleModel = request.VehicleModel,
                 VehicleType = request.VehicleType,
                 VehicleValue = request.VehicleValue,
-                YearOfManufacture = request.YearOfManufacture
+                YearOfManufacture = request.YearOfManufacture,
+                ProfileId = request.ProfileId
             };
 
             _context.Update(vehicle);
@@ -391,6 +395,26 @@ namespace Apps.Core.Core
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
                 StatusMessage = BankTransferAction.INITIATE
+            };
+        }
+
+        public async Task<ServiceResponse<List<Vehicle>>> GetVehicles(string profileId)
+        {
+            var result = await _context.Vehicles.Where(c => c.ProfileId == profileId).ToListAsync();
+            if (result == null)
+            {
+                return new ServiceResponse<List<Vehicle>>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.REQUEST_NOT_FOUND
+                };
+            };
+            return new ServiceResponse<List<Vehicle>>
+            {
+
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = result
             };
         }
     }

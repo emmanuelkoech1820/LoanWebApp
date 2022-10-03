@@ -16,6 +16,9 @@ namespace Apps.Core.Models
         public string Narration { get; set; }
         public string LoanReason { get; set; }
         public string ProfileId { get; set; }
+        public string RegistrationNumber { get; set; }
+        public string VehicleReferenceNumber { get; set; }
+        public string VehicleRegistrationNumber { get; set; }
     }
     public class LoanApproval : LoanBindingModel
     {
@@ -29,6 +32,7 @@ namespace Apps.Core.Models
     {
         public string Reference { get; set; }
         public string VehicleCategory { get; set; }
+        public string ProfileId { get; set; }
         public string VehicleType { get; set; }
         public string InsuranceCoverType { get; set; }
         public string VehicleModel { get; set; }

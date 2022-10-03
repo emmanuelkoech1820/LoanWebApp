@@ -19,5 +19,6 @@ namespace Apps.Core.Abstract
         Task<ServiceResponse> Transfer(BankTransferRequest request);
         Task UpdateRequest(BankTransferRequest request);
         string GenerateSignature(BankTransferRequest request);
+        Task<ServiceResponse<List<Vehicle>>> GetVehicles(string profileId);
     }
 }

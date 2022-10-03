@@ -189,7 +189,7 @@ namespace WebApi.Controllers
             };
 
         }
-        [HttpPost("getrequests")]
+        [HttpGet("getrequests")]
         public async Task<ServiceResponse<List<LoanAccount>>> GetAllRequests()
         {
             var context = HttpContext;
@@ -219,7 +219,9 @@ namespace WebApi.Controllers
         [HttpPost("addvehicle")]
         public async Task<ServiceResponse<List<LoanAccount>>> AddVehicle(VehicleBindingModel model)
         {
-
+            var context = HttpContext;
+            var referenceId = Token(context).Result;
+            model.ProfileId = referenceId;
             var response = await _bankTransferManager.AddVehicle(model);
 
             if (!response.Successful)
@@ -235,6 +237,33 @@ namespace WebApi.Controllers
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
                 StatusMessage = StatusMessage.SUCCESSFUl
+            };
+
+        }
+        [HttpGet("getvehicle")]
+        public async Task<ServiceResponse<List<Vehicle>>> GetAllvehicles()
+        {
+            var context = HttpContext;
+            var referenceId = Token(context).Result;
+
+            var response = await _bankTransferManager.GetVehicles(referenceId);
+            var responses = response.ResponseObject;
+
+            if (!response.Successful)
+            {
+                return new ServiceResponse<List<Vehicle>>
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
+            return new ServiceResponse<List<Vehicle>>
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = responses
+
             };
 
         }

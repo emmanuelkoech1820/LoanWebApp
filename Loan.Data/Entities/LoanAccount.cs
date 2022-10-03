@@ -24,6 +24,8 @@ namespace Apps.Data.Entities
         public int RepaymentPeriod { get; set; }
         public string DestinationName { get; set; }
         public string Narration { get; set; }
+        public string VehicleReferenceNumber { get; set; }
+        public string VehicleRegistrationNumber { get; set; }
         public virtual ICollection<LoanHistory> LoanHistories { get; set; }
     }
     public class LoanHistory : BaseModel
