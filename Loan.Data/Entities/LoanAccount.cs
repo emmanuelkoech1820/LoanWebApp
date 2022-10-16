@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -26,6 +27,7 @@ namespace Apps.Data.Entities
         public string Narration { get; set; }
         public string VehicleReferenceNumber { get; set; }
         public string VehicleRegistrationNumber { get; set; }
+        public DateTime LoanRepaymentDate { get; set; } = DateTime.UtcNow.AddDays(30);
         public virtual ICollection<LoanHistory> LoanHistories { get; set; }
     }
     public class LoanHistory : BaseModel
