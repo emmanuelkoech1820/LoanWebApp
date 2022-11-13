@@ -7,8 +7,8 @@ namespace Apps.Data.Entities
     {
         public string Reference { get; set; }
         public string AgentId { get; set; }
-        public decimal LocationId { get; set; }
-        public string Price { get; set; }
+        public int LocationId { get; set; }
+        public decimal Price { get; set; }
         public string PropertyType { get; set; }
         public string Bedrooms { get; set; }
         public string Bathrooms { get; set; }

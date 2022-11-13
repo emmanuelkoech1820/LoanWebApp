@@ -67,9 +67,9 @@ namespace WebApi.Controllers
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 return new TokenModel()
                 {
-                    Id = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value),
-                    ClientId = jwtToken.Claims.First(x => x.Type == "clientid").Value,
-                    Role = jwtToken.Claims.First(x => x.Type == "role").Value,
+                    Id = int.Parse(jwtToken.Claims.FirstOrDefault(x => x.Type == "id").Value),
+                    ClientId = jwtToken.Claims.FirstOrDefault(x => x.Type.ToLower() == "clientid").Value,
+                    Role = jwtToken.Claims.First(x => x.Type.ToLower() == "role").Value,
                 };
             }
             catch (Exception ex)
@@ -112,7 +112,7 @@ namespace WebApi.Controllers
             };
 
         }
-        [HttpGet("property")]
+        [HttpGet()]
         public async Task<ServiceResponse<List<PropertyModel>>> GetAllProperties()
         {
             var context = HttpContext;

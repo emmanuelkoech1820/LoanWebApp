@@ -5,9 +5,9 @@ namespace Apps.Core.Models
     public class PropertyBindingModel
     {
         public int AgentId { get; set; }
-        public decimal LocationId { get; set; }
+        public int LocationId { get; set; }
         public string ClientId { get; set; }
-        public string Price { get; set; }
+        public decimal Price { get; set; }
         public string PropertyType { get; set; }
         public string Bedrooms { get; set; }
         public string Bathrooms { get; set; }

@@ -67,7 +67,7 @@ namespace Apps.Core.Core
             }
             var request = new PropertyModel()
             {
-                Reference = new Guid().ToString(),
+                Reference = Guid.NewGuid().ToString(),
                 AgentId = model.AgentId.ToString(),
                 Bathrooms = model.Bathrooms,
                 AdditionalInformation = model.AdditionalInformation,
