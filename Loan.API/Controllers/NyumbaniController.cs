@@ -1,0 +1,144 @@
+﻿using Apps.Core.Abstract;
+using Apps.Core.Models;
+using Apps.Data.Entities;
+using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using WebApi.Const;
+using WebApi.Consts;
+using WebApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using System;
+using WebApi.Middleware;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Text;
+using Microsoft.Extensions.Options;
+using Core.Helpers;
+using Microsoft.Extensions.Configuration;
+
+namespace WebApi.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [AllowAnonymous]
+    public class PropertyController : BaseController
+    {
+        private readonly IAccountService _accountService;
+        private readonly INyumbaniManager _nyumbaniManager;
+        private readonly IMapper _mapper;
+        private readonly AppSettings _appSettings;
+        private readonly IConfiguration _configuration;
+
+        public PropertyController(
+            IAccountService accountService,
+            IMapper mapper, INyumbaniManager nyumbaniManager, IOptions<AppSettings> appSettings, IConfiguration configuration)
+        {
+            _accountService = accountService;
+            _mapper = mapper;
+            _nyumbaniManager = nyumbaniManager;
+            _appSettings = appSettings.Value;
+            _configuration = configuration;
+        }
+        public async Task<TokenModel> Token(HttpContext context)
+        {
+            try
+            {
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var config = _configuration["AppSettings:Secret"];
+                var key = Encoding.ASCII.GetBytes(config);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                return new TokenModel()
+                {
+                    Id = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value),
+                    ClientId = jwtToken.Claims.First(x => x.Type == "clientid").Value,
+                    Role = jwtToken.Claims.First(x => x.Type == "role").Value,
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+                // do nothing if jwt validation fails
+                // account is not attached to context so request won't have access to secure routes
+            }
+        }
+
+        [HttpPost("add")]
+
+        public async Task<IActionResult> AddProperty(PropertyBindingModel model)
+        {
+            var context = HttpContext;
+            var user = await Token(context);
+            model.AgentId = user.Id;
+            model.ClientId = user.ClientId;
+            return Ok(await _nyumbaniManager.AddProperty(model));
+
+        }
+        [HttpPut("update")]
+        public async Task<ServiceResponse<List<LoanAccount>>> UpdatePropertyStatus(string reference, bool status)
+        {
+            var response = await _nyumbaniManager.UpdateProperty(reference, status);
+
+            if (!response.Successful)
+            {
+                return new ServiceResponse<List<LoanAccount>>
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
+            return new ServiceResponse<List<LoanAccount>>
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl
+            };
+
+        }
+        [HttpGet("property")]
+        public async Task<ServiceResponse<List<PropertyModel>>> GetAllProperties()
+        {
+            var context = HttpContext;
+            var user = Token(context).Result;
+
+            var response = await _nyumbaniManager.GetAllProperty(user.Id.ToString());
+            var responses = response.ResponseObject;
+
+            if (!response.Successful)
+            {
+                return new ServiceResponse<List<PropertyModel>>
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
+            return new ServiceResponse<List<PropertyModel>>
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = responses
+
+            };
+
+        }
+
+    }
+}

@@ -37,6 +37,7 @@ namespace WebApi.Const
         public const string VALIDATION_RULE_BROKEN = "Stepwise validation failed";
         public const string REQUEST_VALID = "Bank transfer request valid.";
         public const string TRANSFER_FAILED = "Bank transfer Failed.";
+        public const string INVALID_CLIENT_ID = "Invalid client Id";
     }
     public class BankTransferStatus
     {

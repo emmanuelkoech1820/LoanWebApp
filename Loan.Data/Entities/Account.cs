@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Apps.Data.Entities
 {
-    public class Account: BaseModel
+    public class Account : BaseModel
     {
         public string Title { get; set; }
         public string FirstName { get; set; }
@@ -24,8 +24,10 @@ namespace Apps.Data.Entities
         public DateTime? ResetTokenExpires { get; set; }
         public DateTime? PasswordReset { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
+        public string ClientId { get; set; }
 
-        public bool OwnsToken(string token) 
+
+        public bool OwnsToken(string token)
         {
             return this.RefreshTokens?.Find(x => x.Token == token) != null;
         }

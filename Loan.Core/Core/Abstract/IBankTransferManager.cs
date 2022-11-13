@@ -21,4 +21,11 @@ namespace Apps.Core.Abstract
         string GenerateSignature(BankTransferRequest request);
         Task<ServiceResponse<List<Vehicle>>> GetVehicles(string profileId);
     }
+    public interface INyumbaniManager
+    {
+        Task<ServiceResponse<List<PropertyModel>>> GetAllProperty(string agentId);
+        Task<ServiceResponse> AddProperty(PropertyBindingModel model);
+        Task<ServiceResponse> UpdateProperty(string reference, bool status);
+
+    }
 }
