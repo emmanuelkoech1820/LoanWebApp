@@ -16,6 +16,8 @@ using WebApi.Helpers;
 using Apps.Data.Entities;
 using CApps.Dataore.Entities;
 using Apps.Data.Helpers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace WebApi.Services
 {
@@ -60,6 +62,15 @@ namespace WebApi.Services
             var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email || x.PhoneNumber == model.PhoneNumber);
 
             if (account == null || !account.IsVerified || !BC.Verify(model.Password, account.PasswordHash))
+            {
+                return new ServiceResponse<AuthenticateResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.PASSWORD_VALIDATION_FAILED,
+
+                };
+            }
+            if (account.ClientId == null)
             {
                 return new ServiceResponse<AuthenticateResponse>
                 {
@@ -138,6 +149,11 @@ namespace WebApi.Services
             _context.Update(account);
             _context.SaveChanges();
         }
+        private string GetUser(string clientId)
+        {
+            var user = _appSettings.ClientId.FirstOrDefault(x => x.Key == clientId).Value;
+            return user;
+        }
 
         public ServiceResponse<AuthenticateResponse> Register(RegisterRequest model, string origin)
         {
@@ -157,9 +173,25 @@ namespace WebApi.Services
             // map model to new account object
             var account = _mapper.Map<Account>(model);
 
+            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             // first registered account is an admin
             var isFirstAccount = _context.Accounts.Count() == 0;
-            account.Role = isFirstAccount ? Role.Admin : Role.User;
+            if (isFirstAccount)
+                account.Role = Role.Admin;
+
+            if (!string.IsNullOrEmpty(model.ClientId))
+            {
+                account.Role = (Role)Enum.Parse(typeof(Role), (GetUser(model.ClientId)));
+            }
+            else
+            {
+                return (new ServiceResponse<AuthenticateResponse>
+                {
+                    StatusCode = ServiceStatusCode.TRANSACTION_FAILED,
+                    StatusMessage = StatusMessage.INVALID_CLIENT_ID
+
+                });
+            }
             account.Created = DateTime.UtcNow;
             account.VerificationToken = randomTokenString();
             account.Verified = DateTime.UtcNow;
@@ -398,7 +430,7 @@ namespace WebApi.Services
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()), new Claim("NationalId", account.IdNumber.ToString()), new Claim("id", account.Id.ToString()) }),
+                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()), new Claim("NationalId", account.IdNumber.ToString()), new Claim("id", account.Id.ToString()), new Claim("ClientId", account.ClientId.ToString()), new Claim("Role", GetUser(account.ClientId.ToString())) }),
                 Expires = DateTime.UtcNow.AddMinutes(15),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

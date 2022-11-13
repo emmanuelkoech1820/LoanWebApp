@@ -47,6 +47,7 @@ namespace WebApi
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IBankTransferManager, BankTransferManager>();
             services.AddScoped<ITransferProxy, TransferManager>();
+            services.AddScoped<INyumbaniManager, NyumbaniManager>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         }

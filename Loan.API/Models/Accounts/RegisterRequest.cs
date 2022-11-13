@@ -36,5 +36,8 @@ namespace WebApi.Consts.Accounts
         public string EmployerName { get; set; }
         [Required]
         public DateTime DOB { get; set; }
+
+        [Required]
+        public string ClientId { get; set; }
     }
 }
