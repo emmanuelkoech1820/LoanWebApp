@@ -8,10 +8,12 @@ using Apps.Data.Entities;
 using Apps.Data.Helpers;
 using Core.Const;
 using Core.Helpers;
+using Loan.Core.Proxy.Abstract;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +30,8 @@ namespace Apps.Core.Core
         private readonly IHttpContextAccessor _httpAccessor;
         private readonly DataContext _context;
         private ITransferProxy _transferProxy;
-        public BankTransferManager(IHttpContextAccessor httpAccessor, IConfiguration configuration, HttpClientUtil httpClient, DataContext context, ITransferProxy transferProxy)
+        private ISmsProxy _smsProxy;
+        public BankTransferManager(IHttpContextAccessor httpAccessor, IConfiguration configuration, HttpClientUtil httpClient, DataContext context, ITransferProxy transferProxy, ISmsProxy smsProxy)
         {
             _configuration = configuration;
             _httpClient = httpClient;
@@ -36,6 +39,7 @@ namespace Apps.Core.Core
             _httpAccessor = httpAccessor;
             _context = context;
             _transferProxy  = transferProxy;
+            _smsProxy = smsProxy;
         }
         public async Task<ServiceResponse<BankTransferRequest>> GetBankTransferRequest(string reference)
         {
@@ -355,7 +359,7 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.TRANSFER_FAILED
                 };
             }
-
+            await _smsProxy.SendSMS("", $"Confirmed, Your loan is repayment of Ksh {loanRequest.ResponseObject.DisbursedAmount} is received, Loan balance is {loanRequest.ResponseObject.DisbursedAmount} as at {DateTime.Now}", "loanDisbursed");
             return new ServiceResponse<LoanAccount>
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
@@ -416,6 +420,54 @@ namespace Apps.Core.Core
                 StatusMessage = StatusMessage.SUCCESSFUl,
                 ResponseObject = result
             };
+        }
+
+        public async Task<ServiceResponse> PayLoan(PayLoanBindingModel request, string profileId)
+        {
+            var loanRequest = await GetLoanRequest(request.LoanId);
+            if (loanRequest.ResponseObject == null)
+            {
+
+            }
+            var LoanRepayment = new LoanRepayment()
+            {
+                Amount = request.Amount,
+                ProfileId = profileId,
+                Currency = "KES",
+                Status = RepaymentStatus.STKPushReceived,
+                SourcePhoneNumber = request.PhoneNumber,
+                Reference = request.Reference,
+                JsonRequest = JsonConvert.SerializeObject(request)
+            };
+            _context.Update(LoanRepayment);
+            _context.SaveChanges();
+            var response  = _transferProxy.PayLoan(request);
+            LoanRepayment.Status = RepaymentStatus.STKPushSent;
+            LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);
+            _context.Update(LoanRepayment);
+            _context.SaveChanges();
+            return new ServiceResponse();
+        }
+
+        public async Task<ServiceResponse> STKCallback(STKCallback model)
+        {
+            
+            var loanRepayment = await _context.loanRepayment.FirstOrDefaultAsync(c => c.Reference == model.Reference);
+            var request = await GetLoanRequest(loanRepayment.LoanId);
+            if(request.ResponseObject == null)
+            {
+
+            }
+            var loanRequest = request.ResponseObject;
+            loanRequest.RepaidAmount = loanRepayment.Amount;
+            loanRequest.LoanBalance = loanRequest.DisbursedAmount - loanRepayment.Amount;
+            _context.Update(loanRequest);
+            _context.SaveChanges();
+
+            await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan is repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
+
+            return new ServiceResponse()
+            { StatusCode = "00", StatusMessage = "Success"};
         }
     }
 }

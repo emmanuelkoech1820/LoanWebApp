@@ -18,6 +18,7 @@ namespace Apps.Core.Proxy
         private HttpClientUtil _httpClient;
         private string _baseUrl;
         private string _url;
+        private string _stkUrl;
         private readonly IHttpContextAccessor _httpAccessor;
         public TransferManager(IHttpContextAccessor httpAccessor, IConfiguration configuration, HttpClientUtil httpClient)
         {
@@ -25,6 +26,7 @@ namespace Apps.Core.Proxy
             _httpClient = httpClient;
             _url = $"{configuration["Proxy:BankTransfer"]}/intra";
             _httpAccessor = httpAccessor;
+            _stkUrl = $"{configuration["Proxy:BankTransfer"]}/intra";
         }
 
         public async Task<ServiceResponse> Interbank(BankTransferRequest request)
@@ -98,6 +100,33 @@ namespace Apps.Core.Proxy
             header.Add("Content-type", "application/x-www-form-urlencoded");
             var response = await _httpClient.PostUrlEncodedAsync<TokenResponseModel>(url, payload, header);
             return response;
+        }
+
+        public async Task<ServiceResponse> PayLoan(PayLoanBindingModel request)
+        {
+            try
+            {
+                var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: request);
+                return response;
+            }
+            catch (FlurlHttpException ex)
+            {
+                var message = await ex.GetResponseJsonAsync<ServiceResponse>();
+                return new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode };
+            }
+        }
+        public async Task<ServiceResponse> SendSms(PayLoanBindingModel request)
+        {
+            try
+            {
+                var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: request);
+                return response;
+            }
+            catch (FlurlHttpException ex)
+            {
+                var message = await ex.GetResponseJsonAsync<ServiceResponse>();
+                return new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode };
+            }
         }
     }
 }

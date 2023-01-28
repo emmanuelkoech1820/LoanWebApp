@@ -11,6 +11,7 @@ namespace Apps.Data.Helpers
         public DbSet<LoanAccount> LoanAccount { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<PropertyModel> Property { get; set; }
+        public DbSet<LoanRepayment> loanRepayment { get; set; }
 
         private readonly IConfiguration Configuration;
 

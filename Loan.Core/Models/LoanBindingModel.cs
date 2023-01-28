@@ -41,5 +41,5 @@ namespace Apps.Core.Models
         public decimal VehicleValue { get; set; }
         public string RegistrationNumber { get; set; }
         public DateTime InsturanceStartDate { get; set; }
-    }
+    }   
 }

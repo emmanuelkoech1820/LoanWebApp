@@ -267,6 +267,46 @@ namespace WebApi.Controllers
             };
 
         }
+        [HttpPost("payloan")]
+        public async Task<ServiceResponse> PayLoan(PayLoanBindingModel model)
+        {
+            var context = HttpContext;
+            var referenceId = Token(context).Result;
+            var response = await _bankTransferManager.PayLoan(model, referenceId);
+            if (!response.Successful)
+            {
+                return new ServiceResponse
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
+            return new ServiceResponse
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl
+            };
+        }
+        [HttpPost("callback")]
+        public async Task<ServiceResponse> STKCallBack(STKCallback model)
+        {
+            var response = await _bankTransferManager.STKCallback(model);
+            if (!response.Successful)
+            {
+                return new ServiceResponse
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
+            return new ServiceResponse
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl
+            };
+        }
 
     }
 }

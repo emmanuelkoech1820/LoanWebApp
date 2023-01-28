@@ -20,6 +20,8 @@ namespace Apps.Core.Abstract
         Task UpdateRequest(BankTransferRequest request);
         string GenerateSignature(BankTransferRequest request);
         Task<ServiceResponse<List<Vehicle>>> GetVehicles(string profileId);
+        Task<ServiceResponse> PayLoan(PayLoanBindingModel request, string profileId);
+        Task<ServiceResponse> STKCallback(STKCallback request);
     }
     public interface INyumbaniManager
     {
