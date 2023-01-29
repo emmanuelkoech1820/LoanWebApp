@@ -8,7 +8,9 @@ using Apps.Data.Entities;
 using Flurl.Http;
 using Loan.Core.Proxy.Abstract;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,7 +22,7 @@ namespace Apps.Core.Proxy
         private IConfiguration _configuration;
         private HttpClientUtil _httpClient;
         private string _smsUrl;
-        private string _passkey;
+        private string _apikey;
         private string _partnerId;
         private string _ShortCode;
         private string _passType;
@@ -31,7 +33,7 @@ namespace Apps.Core.Proxy
             _httpClient = httpClient;
             _httpAccessor = httpAccessor;
             _smsUrl = $"{configuration["SMSConfig:url"]}";
-            _passkey = $"{configuration["SMSConfig:passkey"]}";
+            _apikey = $"{configuration["SMSConfig:apikey"]}";
             _partnerId = $"{configuration["SMSConfig:partnerID"]}";
             _ShortCode = $"{configuration["SMSConfig:shortcode"]}";
             _passType = $"{configuration["SMSConfig:pass_type"]}";
@@ -51,13 +53,14 @@ namespace Apps.Core.Proxy
             }
             var request = new SMSRequestModel()
             {
-                Apikey = _passkey,
+                Apikey = _apikey,
                 Message = message,
                 Shortcode = _ShortCode,
                 Mobile = phoneNumber,
                 PartnerID = _partnerId,
-                Pass_type = _passkey
+                Pass_type = _passType
             };
+            var pay = JsonConvert.SerializeObject(request);
             try
             {
                 var response = await _httpClient.PostJSONAsync<SMSResponseModel>($"{_smsUrl}", payload: request);

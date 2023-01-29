@@ -6,7 +6,10 @@ using Apps.Core.Utils;
 using Apps.Data.Entities;
 using Flurl.Http;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -20,13 +23,15 @@ namespace Apps.Core.Proxy
         private string _url;
         private string _stkUrl;
         private readonly IHttpContextAccessor _httpAccessor;
-        public TransferManager(IHttpContextAccessor httpAccessor, IConfiguration configuration, HttpClientUtil httpClient)
+        private readonly ILogger<TransferManager> _logger;
+        public TransferManager(ILogger<TransferManager> logger, IHttpContextAccessor httpAccessor, IConfiguration configuration, HttpClientUtil httpClient)
         {
+            _logger = logger;
             _configuration = configuration;
             _httpClient = httpClient;
             _url = $"{configuration["Proxy:BankTransfer"]}/intra";
             _httpAccessor = httpAccessor;
-            _stkUrl = $"{configuration["Proxy:BankTransfer"]}/intra";
+            _stkUrl = $"{configuration["Proxy:STKPushUrl"]}";
         }
 
         public async Task<ServiceResponse> Interbank(BankTransferRequest request)
@@ -106,7 +111,23 @@ namespace Apps.Core.Proxy
         {
             try
             {
-                var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: request);
+                var payload = new
+                {
+                    Amount = request.Amount,
+                    Reference = request.Reference,
+                    PhoneNumber = request.PhoneNumber,
+                    CallBackUrl = request.CallBackUrl,
+                    ErrorCallBackUrl = request.ErrorCallBackUrl,
+                    countryCode = request.CountryCode,
+                    telco = request.Telco
+
+
+                };
+                var accessToken = await GetAccessToken();
+                var header = new Dictionary<string, string>();
+                header.Add("Authorization", $"{accessToken.TokenType} {accessToken.AccessToken}");
+                var pay = JsonConvert.SerializeObject(payload);
+                var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: payload, headers: header);
                 return response;
             }
             catch (FlurlHttpException ex)

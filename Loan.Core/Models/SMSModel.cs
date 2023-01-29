@@ -4,12 +4,12 @@ namespace Apps.Core.Models.SMSModels
 {
     public class SMSRequestModel
     {
-        public string Apikey { get; set; }
-        public string PartnerID { get; set; }
-        public string Mobile { get; set; }
-        public string Message { get; set; }
-        public string Shortcode { get; set; }
-        public string Pass_type { get; set; }
+        public string apikey { get; set; }
+        public string partnerID { get; set; }
+        public string mobile { get; set; }
+        public string message { get; set; }
+        public string shortcode { get; set; }
+        public string pass_type { get; set; }
     }
 
     public class SMSResponseModel

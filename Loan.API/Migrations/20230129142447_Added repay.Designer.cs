@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace WebApi.Migrations
+namespace Loan.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20221113101414_Mig")]
-    partial class Mig
+    [Migration("20230129142447_Added repay")]
+    partial class Addedrepay
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -292,6 +292,51 @@ namespace WebApi.Migrations
                     b.ToTable("LoanHistory");
                 });
 
+            modelBuilder.Entity("Apps.Data.Entities.LoanRepayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("JsonRequest")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("JsonResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LoanId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfileId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reference")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourcePhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("loanRepayment");
+                });
+
             modelBuilder.Entity("Apps.Data.Entities.PropertyModel", b =>
                 {
                     b.Property<int>("Id")
@@ -320,11 +365,11 @@ namespace WebApi.Migrations
                     b.Property<string>("Kitchens")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("LocationId")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Price")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("PropertyType")
                         .HasColumnType("nvarchar(max)");

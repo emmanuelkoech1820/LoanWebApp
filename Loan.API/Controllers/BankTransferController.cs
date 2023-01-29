@@ -289,6 +289,7 @@ namespace WebApi.Controllers
             };
         }
         [HttpPost("callback")]
+        [AllowAnonymous]
         public async Task<ServiceResponse> STKCallBack(STKCallback model)
         {
             var response = await _bankTransferManager.STKCallback(model);

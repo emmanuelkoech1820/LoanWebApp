@@ -427,6 +427,11 @@ namespace Apps.Core.Core
             var loanRequest = await GetLoanRequest(request.LoanId);
             if (loanRequest.ResponseObject == null)
             {
+                return new ServiceResponse
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.VALIDATION_RULE_BROKEN
+                };
 
             }
             var LoanRepayment = new LoanRepayment()
@@ -441,7 +446,7 @@ namespace Apps.Core.Core
             };
             _context.Update(LoanRepayment);
             _context.SaveChanges();
-            var response  = _transferProxy.PayLoan(request);
+            var response  = await _transferProxy.PayLoan(request);
             LoanRepayment.Status = RepaymentStatus.STKPushSent;
             LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);
             _context.Update(LoanRepayment);
@@ -453,10 +458,14 @@ namespace Apps.Core.Core
         {
             
             var loanRepayment = await _context.loanRepayment.FirstOrDefaultAsync(c => c.Reference == model.Reference);
-            var request = await GetLoanRequest(loanRepayment.LoanId);
+            var request = await GetLoanRequest(loanRepayment.Reference);
             if(request.ResponseObject == null)
             {
-
+                return new ServiceResponse
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.VALIDATION_RULE_BROKEN
+                };
             }
             var loanRequest = request.ResponseObject;
             loanRequest.RepaidAmount = loanRepayment.Amount;
