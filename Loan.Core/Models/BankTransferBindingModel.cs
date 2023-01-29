@@ -45,4 +45,3 @@ namespace Apps.Core.Models
     }
 
 }
-}

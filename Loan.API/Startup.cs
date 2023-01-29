@@ -5,6 +5,7 @@ using Apps.Core.Proxy.Abstract;
 using Apps.Core.Utils;
 using Apps.Data.Helpers;
 using AutoMapper;
+using Loan.Core.Proxy.Abstract;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -49,6 +50,7 @@ namespace WebApi
             services.AddScoped<ITransferProxy, TransferManager>();
             services.AddScoped<INyumbaniManager, NyumbaniManager>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<ISmsProxy, SmsService>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         }
 
