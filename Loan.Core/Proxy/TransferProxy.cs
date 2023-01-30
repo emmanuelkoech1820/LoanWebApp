@@ -1,6 +1,7 @@
 ﻿
 using Apps.Core.Consts;
 using Apps.Core.Models;
+using Apps.Core.Models.STKResponseModel;
 using Apps.Core.Proxy.Abstract;
 using Apps.Core.Utils;
 using Apps.Data.Entities;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -113,7 +115,7 @@ namespace Apps.Core.Proxy
             {
                 var payload = new
                 {
-                    Amount = request.Amount,
+                    Amount = Convert.ToInt32(request.Amount),
                     Reference = request.Reference,
                     PhoneNumber = request.PhoneNumber,
                     CallBackUrl = request.CallBackUrl,

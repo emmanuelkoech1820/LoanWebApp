@@ -53,12 +53,12 @@ namespace Apps.Core.Proxy
             }
             var request = new SMSRequestModel()
             {
-                Apikey = _apikey,
-                Message = message,
-                Shortcode = _ShortCode,
-                Mobile = phoneNumber,
-                PartnerID = _partnerId,
-                Pass_type = _passType
+                apikey = _apikey,
+                message = message,
+                shortcode = _ShortCode,
+                mobile = phoneNumber,
+                partnerID = _partnerId,
+                pass_type = _passType
             };
             var pay = JsonConvert.SerializeObject(request);
             try
