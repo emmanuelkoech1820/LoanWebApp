@@ -473,7 +473,7 @@ namespace Apps.Core.Core
             _context.Update(loanRequest);
             _context.SaveChanges();
 
-            await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan is repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
+            await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
 
             return new ServiceResponse()
             { StatusCode = "00", StatusMessage = "Success"};

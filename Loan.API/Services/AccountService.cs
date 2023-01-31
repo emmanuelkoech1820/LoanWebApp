@@ -18,6 +18,9 @@ using CApps.Dataore.Entities;
 using Apps.Data.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Apps.Core.Core;
+using Apps.Core.Models.OTPModel;
+using System.Threading.Tasks;
 
 namespace WebApi.Services
 {
@@ -26,7 +29,7 @@ namespace WebApi.Services
         ServiceResponse<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress);
         AuthenticateResponse RefreshToken(string token, string ipAddress);
         void RevokeToken(string token, string ipAddress);
-        ServiceResponse<AuthenticateResponse> Register(RegisterRequest model, string origin);
+        Task<ServiceResponse<OtpMessage>> Register(RegisterRequest model, string origin);
         ServiceResponse<ValidateResetTokenRequest> VerifyEmail(string token);
         ServiceResponse<ValidateTokenResponseModel> ForgotPassword(ForgotPasswordRequest model, string origin);
         bool ValidateResetToken(ResetPasswordRequest model);
@@ -44,17 +47,20 @@ namespace WebApi.Services
         private readonly IMapper _mapper;
         private readonly AppSettings _appSettings;
         private readonly IEmailService _emailService;
+        private readonly OTPManager _otpService;
 
         public AccountService(
             DataContext context,
             IMapper mapper,
             IOptions<AppSettings> appSettings,
-            IEmailService emailService)
+            IEmailService emailService,
+            OTPManager otpService)
         {
             _context = context;
             _mapper = mapper;
             _appSettings = appSettings.Value;
             _emailService = emailService;
+            _otpService = otpService;
         }
 
         public ServiceResponse<AuthenticateResponse> Authenticate(AuthenticateRequest model, string ipAddress)
@@ -155,14 +161,14 @@ namespace WebApi.Services
             return user;
         }
 
-        public ServiceResponse<AuthenticateResponse> Register(RegisterRequest model, string origin)
+        public async Task<ServiceResponse<OtpMessage>> Register(RegisterRequest model, string origin)
         {
             // validate
             if (_context.Accounts.Any(x => x.Email == model.Email || x.PhoneNumber == model.PhoneNumber))
             {
                 // send already registered error in email to prevent account enumeration
                 //sendAlreadyRegisteredEmail(model.Email, origin);
-                return (new ServiceResponse<AuthenticateResponse>
+                return (new ServiceResponse<OtpMessage>
                 {
                     StatusCode = ServiceStatusCode.INVALID_REQUEST,
                     StatusMessage = StatusMessage.USER_NOT_FOUND
@@ -185,7 +191,7 @@ namespace WebApi.Services
             }
             else
             {
-                return (new ServiceResponse<AuthenticateResponse>
+                return (new ServiceResponse<OtpMessage>
                 {
                     StatusCode = ServiceStatusCode.TRANSACTION_FAILED,
                     StatusMessage = StatusMessage.INVALID_CLIENT_ID
@@ -197,20 +203,29 @@ namespace WebApi.Services
             account.Verified = DateTime.UtcNow;
             // hash password
             account.PasswordHash = BC.HashPassword(model.Password);
+            var otpPayload = new Apps.Core.Models.OTPModel.OtpMessage()
+            {
+                Operation = "RegisterOTP",
+                Source = "Android",
+                To = account.PhoneNumber,
+                Reference = new Random().Next(99999999).ToString()
+            };
 
             // save account
             _context.Accounts.Add(account);
             var response = _context.SaveChanges();
             if (response == 1)
             {
-                return (new ServiceResponse<AuthenticateResponse>
+                await _otpService.GenerateOtp(otpPayload);
+                return (new ServiceResponse<OtpMessage>
                 {
                     StatusCode = ServiceStatusCode.SUCCESSFUL,
-                    StatusMessage = StatusMessage.REGISTER_SUCCESS
+                    StatusMessage = StatusMessage.REGISTER_SUCCESS,
+                    ResponseObject = otpPayload
 
-                });
+                }); ;
             }
-            return (new ServiceResponse<AuthenticateResponse>
+            return (new ServiceResponse<OtpMessage>
             {
                 StatusCode = ServiceStatusCode.INVALID_REQUEST,
                 StatusMessage = StatusMessage.USER_NOT_FOUND

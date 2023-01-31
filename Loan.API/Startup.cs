@@ -52,6 +52,7 @@ namespace WebApi
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ISmsProxy, SmsService>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddTransient<OTPManager>();
         }
 
         // configure the HTTP request pipeline

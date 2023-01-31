@@ -12,6 +12,7 @@ namespace Apps.Data.Helpers
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<PropertyModel> Property { get; set; }
         public DbSet<LoanRepayment> loanRepayment { get; set; }
+        public DbSet<Otp> OTP { get; set; }
 
         private readonly IConfiguration Configuration;
 
