@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading.Tasks;
 using WebApi.Const;
 using WebApi.Consts;
 using WebApi.Consts.Accounts;
@@ -85,9 +86,9 @@ namespace WebApi.Controllers
         //}
 
         [HttpPost("register")]
-        public IActionResult Register(RegisterRequest model)
+        public async Task<IActionResult> Register(RegisterRequest model)
         {
-            var response = _accountService.Register(model, Request.Headers["origin"]);
+            var response = await _accountService.Register(model, Request.Headers["origin"]);
             if (response != null && response.StatusCode == ServiceStatusCode.SUCCESSFUL)
             {
                 return Ok(response);
