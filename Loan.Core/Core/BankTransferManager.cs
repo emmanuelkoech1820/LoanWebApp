@@ -108,6 +108,26 @@ namespace Apps.Core.Core
                 ResponseObject = result
             };
         }
+        public async Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests()
+        {
+            
+            var result = await _context.LoanAccount.Where(c => !c.LoanAprroved).ToListAsync();
+            if (result == null)
+            {
+                return new ServiceResponse<List<LoanAccount>>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.REQUEST_NOT_FOUND
+                };
+            };
+            return new ServiceResponse<List<LoanAccount>>
+            {
+
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = result
+            };
+        }
 
         public async Task<ServiceResponse> ValidateRequest(BankTransferRequest request)
         {

@@ -149,6 +149,21 @@ namespace WebApi.Controllers
             return Ok(resetResponse);
         }
 
+        public async Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber)
+        {
+            if(phoneNumber == null)
+            {
+                return new ServiceResponse<AccountResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.EMAIL_PHONE_REQUIRED,
+
+                };
+            }
+            return await GetUserByPhone(phoneNumber);
+               
+        }
+
         //[Authorize(Role.Admin)]
         //[HttpGet]
         //public ActionResult<IEnumerable<AccountResponse>> GetAll()

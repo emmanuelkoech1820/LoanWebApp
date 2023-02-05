@@ -21,6 +21,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Apps.Core.Core;
 using Apps.Core.Models.OTPModel;
 using System.Threading.Tasks;
+using System.Security.Principal;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WebApi.Services
 {
@@ -39,6 +41,8 @@ namespace WebApi.Services
         AccountResponse Create(CreateRequest model);
         AccountResponse Update(int id, UpdateRequest model);
         void Delete(int id);
+        Task<ServiceResponse> VerifyOtp(VerifyPhoneNumberModel model);
+        Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber);
     }
 
     public class AccountService : IAccountService
@@ -198,9 +202,9 @@ namespace WebApi.Services
 
                 });
             }
-            account.Created = DateTime.UtcNow;
-            account.VerificationToken = randomTokenString();
-            account.Verified = DateTime.UtcNow;
+            //account.Created = DateTime.UtcNow;
+            //account.VerificationToken = randomTokenString();
+            //account.Verified = DateTime.UtcNow;
             // hash password
             account.PasswordHash = BC.HashPassword(model.Password);
             var otpPayload = new Apps.Core.Models.OTPModel.OtpMessage()
@@ -542,6 +546,73 @@ namespace WebApi.Services
                 html: $@"<h4>Reset Password Email</h4>
                          {message}"
             );
+        }
+
+        public async Task<ServiceResponse> VerifyOtp(VerifyPhoneNumberModel model)
+        {
+            var account = _context.Accounts.SingleOrDefault(x => x.PhoneNumber == model.PhoneNumber);
+
+            if (account == null || account.IsVerified)
+            {
+                return new ServiceResponse<AuthenticateResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.PASSWORD_VALIDATION_FAILED,
+
+                };
+            }
+            var verify =  await _otpService.VerifyOTP(model.Reference, "", "", model.Otp);
+            if(verify == null || !verify.Successful)
+            {
+                return new ServiceResponse
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.PASSWORD_VALIDATION_FAILED,
+                };
+            }
+
+            account.VerificationToken = randomTokenString();
+            account.Verified = DateTime.UtcNow;
+            _context.Update(account);
+            _context.SaveChanges();
+            return new ServiceResponse
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+            };
+        }
+
+        public async Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber)
+        {
+            var account = _context.Accounts.SingleOrDefault(x => x.PhoneNumber == phoneNumber);
+
+            if (account == null || account.IsVerified)
+            {
+                return new ServiceResponse<AccountResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.PASSWORD_VALIDATION_FAILED,
+
+                };
+            }
+            return new ServiceResponse<AccountResponse>
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = new AccountResponse
+                {
+                    Email = account.Email,
+                    FirstName  = account.FirstName,
+                    LastName = account.LastName,
+                    Id = account.Id,
+                    IsVerified = account.IsVerified,
+                    Role = account.Role.ToString(),
+                    Title = account.Title,
+                    Created = account.Created,
+                    Updated = account.Updated
+                        
+                }
+            };
         }
     }
 }

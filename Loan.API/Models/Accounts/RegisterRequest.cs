@@ -40,4 +40,10 @@ namespace WebApi.Consts.Accounts
         [Required]
         public string ClientId { get; set; }
     }
+    public class VerifyPhoneNumberModel
+    {
+        public string Otp { get; set; }
+        public string Reference { get; set; }
+        public string PhoneNumber { get; set; }
+    }
 }

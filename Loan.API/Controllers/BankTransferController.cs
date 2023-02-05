@@ -216,6 +216,31 @@ namespace WebApi.Controllers
             };
 
         }
+        [HttpGet("getpendingrequest")]
+        public async Task<ServiceResponse<List<LoanAccount>>> GetAllPendingRequests()
+        {
+
+            var response = await _bankTransferManager.GetLoanRequests();
+            var responses = response.ResponseObject;
+
+            if (!response.Successful)
+            {
+                return new ServiceResponse<List<LoanAccount>>
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
+            return new ServiceResponse<List<LoanAccount>>
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = responses
+
+            };
+
+        }
         [HttpPost("addvehicle")]
         public async Task<ServiceResponse<List<LoanAccount>>> AddVehicle(VehicleBindingModel model)
         {
