@@ -38,7 +38,7 @@ namespace Apps.Core.Core
             _url = $"{configuration["Proxy:BankTransfer"]}/intra";
             _httpAccessor = httpAccessor;
             _context = context;
-            _transferProxy  = transferProxy;
+            _transferProxy = transferProxy;
             _smsProxy = smsProxy;
         }
         public async Task<ServiceResponse<BankTransferRequest>> GetBankTransferRequest(string reference)
@@ -110,7 +110,7 @@ namespace Apps.Core.Core
         }
         public async Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests()
         {
-            
+
             var result = await _context.LoanAccount.Where(c => !c.LoanAprroved).ToListAsync();
             if (result == null)
             {
@@ -154,7 +154,7 @@ namespace Apps.Core.Core
             return new ServiceResponse
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
-                StatusMessage =StatusMessage.REQUEST_VALID
+                StatusMessage = StatusMessage.REQUEST_VALID
             };
 
         }
@@ -167,33 +167,39 @@ namespace Apps.Core.Core
             }
             request.Status = BankTransferStatus.PENDING_Transfer;
             var result = new ServiceResponse();
+            var loanRequest = await GetLoanRequest(request.Reference);
+            object payld = new object();
             if (request.TransferType.ToLower() == "intrabank")
             {
-                 result = await _transferProxy.Intrabank(request);
+                (payld, result) = await _transferProxy.Intrabank(request);
             }
             else
             {
-                result = await _transferProxy.Interbank(request);
+                (payld, result) = await _transferProxy.Interbank(request);
 
             }
-            if(result == null || !result.Successful )
+            request.Histories.Add(new History
             {
-               
+                Action = "Transfer result",
+                Description = $"JsonResult: {JsonConvert.SerializeObject(payld)}  {JsonConvert.SerializeObject(result)}"
+            });
+            if (result == null || !result.Successful)
+            {
+
                 request.Status = BankTransferStatus.FAILED;
                 return new ServiceResponse
                 {
                     StatusCode = result?.StatusCode ?? ServiceStatusCode.TRANSACTION_FAILED,
-                    StatusMessage = result?.StatusMessage ??  StatusMessage.TRANSFER_FAILED
+                    StatusMessage = result?.StatusMessage ?? StatusMessage.TRANSFER_FAILED
                 };
-               
+
             }
             request.Histories.Add(new History
             {
                 Action = BankTransferAction.TRANSFER_SUCCESS,
                 Description = "Transfer Successful"
             });
-
-            var loanRequest = await GetLoanRequest(request.Reference);
+            await _smsProxy.SendSMS("", $"Confirmed, Your loan is repayment of Ksh {loanRequest.ResponseObject.DisbursedAmount} is received, Loan balance is {loanRequest.ResponseObject.DisbursedAmount} as at {DateTime.Now}", "loanDisbursed");
             loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed;
             _context.Update(loanRequest.ResponseObject);
             var results = _context.SaveChanges();
@@ -230,9 +236,8 @@ namespace Apps.Core.Core
                 throw new ArgumentNullException(nameof(model.Reference));
             }
             var request = await GetBankTransferRequest(model.Reference);
-            var loanRequest = await GetLoanRequest(model.Reference);
-            if(loanRequest.ResponseObject == null)
-                //|| loanRequest.ResponseObject.LoanAprroved != LoanApprovalStatus.Approved)
+            var loanRequest = await GetLoanRequest(model.LoanReference);
+            if (loanRequest.ResponseObject == null || !loanRequest.ResponseObject.LoanAprroved)
             {
                 return new ServiceResponse<BankTransferRequest>
                 {
@@ -262,7 +267,7 @@ namespace Apps.Core.Core
                 SourceAccount = model.SourceAccount,
                 Status = BankTransferStatus.PENDING_VALIDATION,
                 Reference = model.Reference,
-                TransferType = model.TransferType,                
+                TransferType = model.TransferType,
                 Histories = new List<History>
                 {
                     new History
@@ -274,7 +279,7 @@ namespace Apps.Core.Core
                 }
             };
             _context.Update(request.ResponseObject);
-            var result =  _context.SaveChanges();
+            var result = _context.SaveChanges();
             if (result < 1)
             {
                 return new ServiceResponse<BankTransferRequest>
@@ -379,7 +384,6 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.TRANSFER_FAILED
                 };
             }
-            await _smsProxy.SendSMS("", $"Confirmed, Your loan is repayment of Ksh {loanRequest.ResponseObject.DisbursedAmount} is received, Loan balance is {loanRequest.ResponseObject.DisbursedAmount} as at {DateTime.Now}", "loanDisbursed");
             return new ServiceResponse<LoanAccount>
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
@@ -444,7 +448,7 @@ namespace Apps.Core.Core
 
         public async Task<ServiceResponse> PayLoan(PayLoanBindingModel request, string profileId)
         {
-            var loanRequest = await GetLoanRequest(request.LoanId);
+            var loanRequest = await GetLoanRequest(request.LoanReference);
             if (loanRequest.ResponseObject == null)
             {
                 return new ServiceResponse
@@ -466,20 +470,22 @@ namespace Apps.Core.Core
             };
             _context.Update(LoanRepayment);
             _context.SaveChanges();
-            var response  = await _transferProxy.PayLoan(request);
+            var response = await _transferProxy.PayLoan(request);
             LoanRepayment.Status = RepaymentStatus.STKPushSent;
             LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);
             _context.Update(LoanRepayment);
             _context.SaveChanges();
-            return new ServiceResponse();
+            return new ServiceResponse()
+            { StatusCode = "00", StatusMessage = "Success" };
+
         }
 
         public async Task<ServiceResponse> STKCallback(STKCallback model)
         {
-            
+
             var loanRepayment = await _context.loanRepayment.FirstOrDefaultAsync(c => c.Reference == model.Reference);
             var request = await GetLoanRequest(loanRepayment.Reference);
-            if(request.ResponseObject == null)
+            if (request.ResponseObject == null)
             {
                 return new ServiceResponse
                 {
@@ -496,7 +502,7 @@ namespace Apps.Core.Core
             await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
 
             return new ServiceResponse()
-            { StatusCode = "00", StatusMessage = "Success"};
+            { StatusCode = "00", StatusMessage = "Success" };
         }
     }
 }

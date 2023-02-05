@@ -5,6 +5,7 @@ namespace Apps.Core.Models
     public class BankTransferBinding
     {
         public string Reference { get; set; }
+        public string LoanReference { get; set; }
         public decimal Amount { get; set; }
         public string SourceAccount { get; set; }
         public string DestinationAccount { get; set; }
@@ -20,7 +21,7 @@ namespace Apps.Core.Models
     public class PayLoanBindingModel
     {
         public string Reference { get; set; }
-        public string LoanId { get; set; }
+        public string LoanReference { get; set; }
         public string PhoneNumber { get; set; }
         public decimal Amount { get; set; }
         public string Telco { get; set; } = "SAF";

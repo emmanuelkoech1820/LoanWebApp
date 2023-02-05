@@ -109,6 +109,12 @@ namespace WebApi.Controllers
             return Ok(new { message = "Verification successful, you can now login" });
         }
 
+        [HttpPost("verifyphone")]
+        public async Task<ServiceResponse> VerifyEmail(VerifyPhoneNumberModel model)
+        {
+            return await _accountService.VerifyOtp(model);
+        }
+
         [HttpPost("forgot-password")]
         public ActionResult<ServiceResponse<ValidateTokenResponseModel>> ForgotPassword(ForgotPasswordRequest model)
         {

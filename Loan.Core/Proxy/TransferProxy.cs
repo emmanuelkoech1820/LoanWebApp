@@ -36,64 +36,66 @@ namespace Apps.Core.Proxy
             _stkUrl = $"{configuration["Proxy:STKPushUrl"]}";
         }
 
-        public async Task<ServiceResponse> Interbank(BankTransferRequest request)
+        public async Task<(IntraBankTransferModel request, ServiceResponse)> Interbank(BankTransferRequest request)
         {
+            var payload = new InterBankTransferModel
+            {
+                BankId = request.BankId,
+                Amount = request.Amount,
+                DestinationAccount = request.DestinationAccount,
+                Narration = request.Narration,
+                PaymentReason = request.PaymentReason,
+                Reference = request.Reference,
+                SourceAccount = request.SourceAccount,
+                DestinationBankCode = request.DestinationBankCode,
+                DestinationName = request.DestinationName
+
+            };
+
 
             try
             {
-                var payload = new InterBankTransferModel
-                {
-                    BankId = request.BankId,
-                    Amount = request.Amount,
-                    DestinationAccount = request.DestinationAccount,
-                    Narration = request.Narration,
-                    PaymentReason = request.PaymentReason,
-                    Reference = request.Reference,
-                    SourceAccount = request.SourceAccount,
-                    DestinationBankCode = request.DestinationBankCode,
-                    DestinationName = request.DestinationName
-                    
-                };
-
+               
                 var accessToken = await GetAccessToken();
                 var header = new Dictionary<string, string>();
                 header.Add("Authorization", $"{accessToken.TokenType} {accessToken.AccessToken}");
                 var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_url}", payload: payload, headers: header);
-                return response;
+                return (payload, response);
             }
             catch (FlurlHttpException ex)
             {
                 var message = await ex.GetResponseJsonAsync<ServiceResponse>();
-                return new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode};
+                return (payload, new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode});
             }
         }
 
-        public async Task<ServiceResponse> Intrabank(Data.Entities.BankTransferRequest request)
+        public async Task<(IntraBankTransferModel request, ServiceResponse)> Intrabank(Data.Entities.BankTransferRequest request)
         {
+            var payload = new IntraBankTransferModel
+            {
+                BankId = request.BankId,
+                Amount = request.Amount,
+                DestinationAccount = request.DestinationAccount,
+                Narration = request.Narration,
+                PaymentReason = request.PaymentReason,
+                Reference = request.Reference,
+                SourceAccount = request.SourceAccount
+            };
 
             try
             {
-                var payload = new IntraBankTransferModel
-                {
-                    BankId = request.BankId,
-                    Amount = request.Amount,
-                    DestinationAccount = request.DestinationAccount,
-                    Narration = request.Narration,
-                    PaymentReason = request.PaymentReason,
-                    Reference = request.Reference,
-                    SourceAccount = request.SourceAccount
-                };
+                
 
                 var accessToken = await GetAccessToken();
                 var header = new Dictionary<string, string>();
                 header.Add("Authorization", $"{accessToken.TokenType} {accessToken.AccessToken}");               
                 var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_url}", payload: payload, headers: header);
-                return response;
+                return (payload, response);
             }
             catch (FlurlHttpException ex)
             {
                 var message = await ex.GetResponseJsonAsync<ServiceResponse>();
-                return new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode };
+                return (payload, new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode });
             }
         }
         private async Task<TokenResponseModel> GetAccessToken()

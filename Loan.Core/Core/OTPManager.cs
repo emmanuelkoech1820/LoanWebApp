@@ -209,7 +209,6 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.TRANSFER_FAILED
                 };
             }
-            await _smsProxy.SendSMS(existingOtp.To, $"InsureTech registration, Dear customer, please use this digits to conplete your registration {password}", "RegisterOTP");
 
             return new ServiceResponse
             {

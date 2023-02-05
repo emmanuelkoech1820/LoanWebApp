@@ -8,8 +8,8 @@ namespace Apps.Core.Proxy.Abstract
 {
     public interface ITransferProxy
     {
-        Task<ServiceResponse> Intrabank(BankTransferRequest request);
-        Task<ServiceResponse> Interbank(BankTransferRequest request);
+        Task<(IntraBankTransferModel request, ServiceResponse)> Intrabank(BankTransferRequest request);
+        Task<(IntraBankTransferModel request, ServiceResponse)> Interbank(BankTransferRequest request);
         Task<ServiceResponse> PayLoan(PayLoanBindingModel request);
     }
     

@@ -23,6 +23,7 @@ using Apps.Core.Models.OTPModel;
 using System.Threading.Tasks;
 using System.Security.Principal;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Loan.Core.Proxy.Abstract;
 
 namespace WebApi.Services
 {
@@ -561,7 +562,7 @@ namespace WebApi.Services
 
                 };
             }
-            var verify =  await _otpService.VerifyOTP(model.Reference, "", "", model.Otp);
+            var verify =  await _otpService.VerifyOTP(model.Reference, "RegisterOTP", "Android", model.Otp);
             if(verify == null || !verify.Successful)
             {
                 return new ServiceResponse
@@ -575,6 +576,8 @@ namespace WebApi.Services
             account.Verified = DateTime.UtcNow;
             _context.Update(account);
             _context.SaveChanges();
+
+           // await _smsProxy.SendSMS(existingOtp.To, $"InsureTech registration, Dear customer, your registration is ");
             return new ServiceResponse
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
