@@ -16,8 +16,8 @@ namespace Apps.Core.Abstract
         Task<ServiceResponse> AddVehicle(VehicleBindingModel request);
         Task<ServiceResponse<BankTransferRequest>> InitiateRequest(BankTransferBinding request);
         Task<ServiceResponse<LoanAccount>> InitiateLoanRequest(LoanBindingModel request);
-        Task<ServiceResponse<LoanAccount>> ApproveLoanRequest(LoanApproval request);
-        Task<ServiceResponse> Transfer(BankTransferRequest request);
+        Task<ServiceResponse<LoanAccount>> ApproveLoanRequest(LoanApproval request, string profileId);
+        Task<ServiceResponse> Transfer(BankTransferRequest request, string profileId);
         Task UpdateRequest(BankTransferRequest request);
         string GenerateSignature(BankTransferRequest request);
         Task<ServiceResponse<List<Vehicle>>> GetVehicles(string profileId);

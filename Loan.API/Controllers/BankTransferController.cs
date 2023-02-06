@@ -119,7 +119,10 @@ namespace WebApi.Controllers
         [HttpPost("Complete")]
         public async Task<ServiceResponse> Complete(BankTransferRequest model)
         {
-            var complete = await _bankTransferManager.Transfer(model);
+            var context = HttpContext;
+            var user = Token(context);
+            model.ProfileId = user.Result;
+            var complete = await _bankTransferManager.Transfer(model, model.ProfileId);
             if (!complete.Successful)
             {
                 return new ServiceResponse
@@ -169,7 +172,7 @@ namespace WebApi.Controllers
             var context = HttpContext;
             var user = Token(context);
             model.ProfileId = user.Result;
-            var response = await _bankTransferManager.ApproveLoanRequest(model);
+            var response = await _bankTransferManager.ApproveLoanRequest(model, model.ProfileId);
             var responses = response.ResponseObject;
 
             if (!response.Successful)

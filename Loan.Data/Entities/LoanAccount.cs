@@ -38,6 +38,8 @@ namespace Apps.Data.Entities
         [ForeignKey("LoanAccount")]
         public int LoanRequest { get; set; }
         public virtual LoanAccount LoanAccount { get; set; }
+        public decimal BorrowedAmount { get; set; }
+        public decimal RepaidAmount { get; set; }
     }
 
     public enum DisbursmentStatus

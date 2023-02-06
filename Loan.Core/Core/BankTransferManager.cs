@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Apps.Core.Core
 {
@@ -159,7 +160,7 @@ namespace Apps.Core.Core
 
         }
 
-        public async Task<ServiceResponse> Transfer(BankTransferRequest request)
+        public async Task<ServiceResponse> Transfer(BankTransferRequest request, string profileId)
         {
             if (request == null || request.Status != BankTransferStatus.PENDING_DEBIT)
             {
@@ -201,6 +202,16 @@ namespace Apps.Core.Core
             });
             await _smsProxy.SendSMS("", $"Confirmed, Your loan is repayment of Ksh {loanRequest.ResponseObject.DisbursedAmount} is received, Loan balance is {loanRequest.ResponseObject.DisbursedAmount} as at {DateTime.Now}", "loanDisbursed");
             loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed;
+            loanRequest.ResponseObject.LoanHistories = new List<LoanHistory>()
+            {
+                new LoanHistory
+                {
+                    Action = "Disbursed",
+                    BorrowedAmount = request.Amount,
+                    Description = "Loan Approved",
+                    PerformedBy = $"Loan approved by {profileId}"
+                }
+            };
             _context.Update(loanRequest.ResponseObject);
             var results = _context.SaveChanges();
             if (results < 1)
@@ -328,8 +339,8 @@ namespace Apps.Core.Core
                 {
                     new LoanHistory
                     {
-                        Description = "Initiate",
-                        Action = "Initiate",
+                        Description = "Customer Borrow Money",
+                        Action = "Customer Initiate",
                         PerformedBy = "customer"
                     }
                 },
@@ -356,7 +367,7 @@ namespace Apps.Core.Core
             };
         }
 
-        public async Task<ServiceResponse<LoanAccount>> ApproveLoanRequest(LoanApproval model)
+        public async Task<ServiceResponse<LoanAccount>> ApproveLoanRequest(LoanApproval model, string profileId)
         {
             var loanRequest = await GetLoanRequest(model.Reference);
             if (loanRequest.ResponseObject == null)
@@ -372,6 +383,16 @@ namespace Apps.Core.Core
             loanRequest.ResponseObject.DisbursmentStatus = model.Status;
             loanRequest.ResponseObject.DestinationAccount = model.DestinationAccount;
             loanRequest.ResponseObject.LoanAprroved = model.LoanApprovalStatus;
+            loanRequest.ResponseObject.LoanHistories = new List<LoanHistory>()
+            {
+                new LoanHistory
+                {
+                    Action = "Approval",
+                    BorrowedAmount = model.Amount,
+                    Description = "Loan Approved",
+                    PerformedBy = $"Loan approved by {profileId}"
+                }
+            };
 
 
             _context.Update(loanRequest.ResponseObject);

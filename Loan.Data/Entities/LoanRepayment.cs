@@ -25,5 +25,14 @@ namespace Apps.Data.Entities
         Succesfull,
         Failed
     }
+    public class LoanRepaymentHistory : BaseModel
+    {
+        public string Action { get; set; }
+        public string Description { get; set; }
+        public string PerformedBy { get; set; } // Unique ID of 
+        [ForeignKey("LoanRepayment")]
+        public int LoanRepaymentId { get; set; }
+        public virtual LoanRepayment LoanRepayment { get; set; }
+    }
 
 }
