@@ -123,7 +123,7 @@ namespace WebApi.Controllers
             var user = Token(context);
             model.ProfileId = user.Result;
             var complete = await _bankTransferManager.Transfer(model, model.ProfileId);
-            if (!complete.Successful)
+            if (complete.StatusCode != "00")
             {
                 return new ServiceResponse
                 {

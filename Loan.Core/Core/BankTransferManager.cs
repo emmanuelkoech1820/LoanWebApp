@@ -168,7 +168,7 @@ namespace Apps.Core.Core
             }
             request.Status = BankTransferStatus.PENDING_Transfer;
             var result = new ServiceResponse();
-            var loanRequest = await GetLoanRequest(request.Reference);
+            var loanRequest = await GetLoanRequest(request.LoanRequestId);
             object payld = new object();
             if (request.TransferType.ToLower() == "intrabank")
             {
@@ -184,6 +184,8 @@ namespace Apps.Core.Core
                 Action = "Transfer result",
                 Description = $"JsonResult: {JsonConvert.SerializeObject(payld)}  {JsonConvert.SerializeObject(result)}"
             });
+            _context.Update(loanRequest.ResponseObject);
+            _context.SaveChanges();
             if (result == null || !result.Successful)
             {
 
@@ -278,6 +280,7 @@ namespace Apps.Core.Core
                 SourceAccount = model.SourceAccount,
                 Status = BankTransferStatus.PENDING_VALIDATION,
                 Reference = model.Reference,
+                LoanRequestId = model.LoanReference,
                 TransferType = model.TransferType,
                 Histories = new List<History>
                 {
