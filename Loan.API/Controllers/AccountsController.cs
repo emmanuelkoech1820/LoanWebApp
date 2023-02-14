@@ -46,7 +46,7 @@ namespace WebApi.Controllers
             }
             return Ok(response);
 
-        }
+        }        
         [HttpGet("connected")]
         public ActionResult<ServiceResponse> Connected(AuthenticateRequest model)
         {
@@ -154,8 +154,8 @@ namespace WebApi.Controllers
             var resetResponse = _accountService.ResetPassword(model);
             return Ok(resetResponse);
         }
-
-        public async Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber)
+        [HttpPost("details")]
+        public async Task<ServiceResponse<AccountResponse>> GetUserByPhoneNumber(string phoneNumber)
         {
             if(phoneNumber == null)
             {
@@ -166,7 +166,7 @@ namespace WebApi.Controllers
 
                 };
             }
-            return await GetUserByPhone(phoneNumber);
+            return await _accountService.GetUserByPhone(phoneNumber);
                
         }
 

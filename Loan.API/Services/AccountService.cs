@@ -44,6 +44,7 @@ namespace WebApi.Services
         void Delete(int id);
         Task<ServiceResponse> VerifyOtp(VerifyPhoneNumberModel model);
         Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber);
+        Task<ServiceResponse<AccountResponse>> GetDetailsByPhone(string phoneNumber);
     }
 
     public class AccountService : IAccountService
@@ -616,6 +617,11 @@ namespace WebApi.Services
                         
                 }
             };
+        }
+
+        public Task<ServiceResponse<AccountResponse>> GetDetailsByPhone(string phoneNumber)
+        {
+            throw new NotImplementedException();
         }
     }
 }
