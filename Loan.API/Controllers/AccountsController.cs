@@ -154,7 +154,7 @@ namespace WebApi.Controllers
             var resetResponse = _accountService.ResetPassword(model);
             return Ok(resetResponse);
         }
-        [HttpPost("details/{phoneNumber}")]
+        [HttpGet("details/{phoneNumber}")]
         public async Task<ServiceResponse<AccountResponse>> GetUserByPhoneNumber(string phoneNumber)
         {
             if(phoneNumber == null)

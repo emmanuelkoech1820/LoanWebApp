@@ -563,8 +563,8 @@ namespace WebApi.Services
 
                 };
             }
-            var verify =  await _otpService.VerifyOTP(model.Reference, "RegisterOTP", "Android", model.Otp);
-            if(verify == null || !verify.Successful)
+            var verify = await _otpService.VerifyOTP(model.Reference, "RegisterOTP", "Android", model.Otp);
+            if (verify == null || !verify.Successful)
             {
                 return new ServiceResponse
                 {
@@ -590,7 +590,7 @@ namespace WebApi.Services
         {
             var account = _context.Accounts.SingleOrDefault(x => x.PhoneNumber == phoneNumber);
 
-            if (account == null || account.IsVerified)
+            if (account == null)
             {
                 return new ServiceResponse<AccountResponse>
                 {
@@ -613,7 +613,8 @@ namespace WebApi.Services
                     Role = account.Role.ToString(),
                     Title = account.Title,
                     Created = account.Created,
-                    Updated = account.Updated
+                    Updated = account.Updated,
+                    PhoneNumber = account.PhoneNumber
                         
                 }
             };
