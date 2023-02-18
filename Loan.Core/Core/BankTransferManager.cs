@@ -528,5 +528,25 @@ namespace Apps.Core.Core
             return new ServiceResponse()
             { StatusCode = "00", StatusMessage = "Success" };
         }
+
+        public async Task<ServiceResponse<List<LoanAccount>>> GetAppliedLoans(int count)
+        {
+            var result = await _context.LoanAccount.Where(c => !c.LoanAprroved).Take(count).ToListAsync();
+            if (result == null)
+            {
+                return new ServiceResponse<List<LoanAccount>>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.REQUEST_NOT_FOUND
+                };
+            };
+            return new ServiceResponse<List<LoanAccount>>
+            {
+
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = result
+            };
+        }
     }
 }

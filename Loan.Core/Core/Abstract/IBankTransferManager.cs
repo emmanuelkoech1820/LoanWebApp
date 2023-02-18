@@ -23,6 +23,7 @@ namespace Apps.Core.Abstract
         Task<ServiceResponse<List<Vehicle>>> GetVehicles(string profileId);
         Task<ServiceResponse> PayLoan(PayLoanBindingModel request, string profileId);
         Task<ServiceResponse> STKCallback(STKCallback request);
+        Task<ServiceResponse<List<LoanAccount>>> GetAppliedLoans(int count);
     }
     public interface INyumbaniManager
     {
