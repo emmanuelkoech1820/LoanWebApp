@@ -132,6 +132,9 @@ namespace Apps.Core.Proxy
                 header.Add("Authorization", $"{accessToken.TokenType} {accessToken.AccessToken}");
                 var pay = JsonConvert.SerializeObject(payload);
                 var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: payload, headers: header);
+                if (response == null || response.StatusCode != "00")
+                    return new ServiceResponse { StatusCode = "01", StatusMessage = response?.StatusMessage ?? "failed" };
+                       
                 return response;
             }
             catch (FlurlHttpException ex)

@@ -10,6 +10,7 @@ using Core.Const;
 using Core.Helpers;
 using Loan.Core.Proxy.Abstract;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
@@ -73,6 +74,25 @@ namespace Apps.Core.Core
                 };
             }
             return new ServiceResponse<LoanAccount>
+            {
+
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = result
+            };
+        }
+        public async Task<ServiceResponse<LoanRepayment>> GetLoanRepaymentRequest(string reference)
+        {
+            var result = await _context.loanRepayment.FirstOrDefaultAsync(c => c.Reference == reference);
+            if (result == null)
+            {
+                return new ServiceResponse<LoanRepayment>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.REQUEST_NOT_FOUND
+                };
+            }
+            return new ServiceResponse<LoanRepayment>
             {
 
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
@@ -472,6 +492,16 @@ namespace Apps.Core.Core
 
         public async Task<ServiceResponse> PayLoan(PayLoanBindingModel request, string profileId)
         {
+            var loanRepaymentRequest = await GetLoanRepaymentRequest(request.Reference);
+            if (loanRepaymentRequest.ResponseObject != null)
+            {
+                return new ServiceResponse
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.DUPLICATE_REQUEST
+                };
+
+            }
             var loanRequest = await GetLoanRequest(request.LoanReference);
             if (loanRequest.ResponseObject == null)
             {
@@ -482,7 +512,8 @@ namespace Apps.Core.Core
                 };
 
             }
-            var LoanRepayment = new LoanRepayment()
+            var LoanRepayment = loanRepaymentRequest.ResponseObject;
+             LoanRepayment = new LoanRepayment()
             {
                 Amount = request.Amount,
                 ProfileId = profileId,
@@ -495,8 +526,22 @@ namespace Apps.Core.Core
             _context.Update(LoanRepayment);
             _context.SaveChanges();
             var response = await _transferProxy.PayLoan(request);
+            if(response == null || response.StatusCode != "00")
+            {
+                LoanRepayment.Status = RepaymentStatus.STKPushSent;
+                LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);
+                _context.Update(LoanRepayment);
+                _context.SaveChanges();
+                return new ServiceResponse
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.FAILED
+                };
+            }
             LoanRepayment.Status = RepaymentStatus.STKPushSent;
             LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);
+            loanRequest.ResponseObject.RepaymentStatus = "REPAID";
+            loanRequest.ResponseObject.RepaidAmount = request.Amount;
             _context.Update(LoanRepayment);
             _context.SaveChanges();
             return new ServiceResponse()

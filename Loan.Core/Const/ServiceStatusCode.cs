@@ -37,7 +37,7 @@ namespace Core.Const
         public const string VALIDATION_RULE_BROKEN = "Stepwise validation failed";
         public const string REQUEST_VALID = "Bank transfer request valid.";
         public const string TRANSFER_FAILED = "Bank transfer Failed.";
-        public const string DUPLICATE_REQUEST = "DuplicateRequest";
+        public const string DUPLICATE_REQUEST = "Duplicate Request";
         public const string UNAPPROVED_REQUEST = "Request not approved";
     }
     public class BankTransferStatus
