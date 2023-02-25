@@ -99,7 +99,7 @@ namespace Apps.Core.Utils
             {
                 //if (ex.Call. == System.Net.HttpStatusCode.InternalServerError)
                 //    throw ex;
-
+                throw ex;
                 return await ex.GetResponseJsonAsync<T>();
             }
             catch (TaskCanceledException)

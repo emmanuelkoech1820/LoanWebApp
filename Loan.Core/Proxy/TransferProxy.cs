@@ -120,19 +120,17 @@ namespace Apps.Core.Proxy
                     Amount = Convert.ToInt32(request.Amount),
                     Reference = request.Reference,
                     PhoneNumber = request.PhoneNumber,
-                    CallBackUrl = request.CallBackUrl,
-                    ErrorCallBackUrl = request.ErrorCallBackUrl,
-                    countryCode = request.CountryCode,
-                    telco = request.Telco
-
-
+                    CallBackUrl = request.CallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/banktransfer/callback",
+                    ErrorCallBackUrl = request.ErrorCallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/banktransfer/callback",
+                    countryCode = request.CountryCode ?? "KE",
+                    telco = request.Telco ?? "SAF"
                 };
                 var accessToken = await GetAccessToken();
                 var header = new Dictionary<string, string>();
-                header.Add("Authorization", $"{accessToken.TokenType} {accessToken.AccessToken}");
+                header.Add("Authorization", $"{accessToken?.TokenType} {accessToken?.AccessToken}");
                 var pay = JsonConvert.SerializeObject(payload);
                 var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: payload, headers: header);
-                if (response == null || response.StatusCode != "00")
+                if (response == null || response?.StatusCode != "00")
                     return new ServiceResponse { StatusCode = "01", StatusMessage = response?.StatusMessage ?? "failed" };
                        
                 return response;
@@ -140,7 +138,7 @@ namespace Apps.Core.Proxy
             catch (FlurlHttpException ex)
             {
                 var message = await ex.GetResponseJsonAsync<ServiceResponse>();
-                return new ServiceResponse { StatusMessage = message.StatusMessage, StatusCode = message.StatusCode };
+                return new ServiceResponse { StatusMessage = JsonConvert.SerializeObject(ex.Message) ?? message?.StatusMessage, StatusCode = message?.StatusCode };
             }
         }
         public async Task<ServiceResponse> SendSms(PayLoanBindingModel request)

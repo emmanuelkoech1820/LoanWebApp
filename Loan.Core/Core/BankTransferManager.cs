@@ -526,7 +526,7 @@ namespace Apps.Core.Core
             _context.Update(LoanRepayment);
             _context.SaveChanges();
             var response = await _transferProxy.PayLoan(request);
-            if(response == null || response.StatusCode != "00")
+            if (response == null || response.StatusCode != "00")
             {
                 LoanRepayment.Status = RepaymentStatus.STKPushSent;
                 LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);
@@ -535,7 +535,7 @@ namespace Apps.Core.Core
                 return new ServiceResponse
                 {
                     StatusCode = ServiceStatusCode.INVALID_REQUEST,
-                    StatusMessage = StatusMessage.FAILED
+                    StatusMessage = JsonConvert.SerializeObject(response) ?? StatusMessage.FAILED
                 };
             }
             LoanRepayment.Status = RepaymentStatus.STKPushSent;
