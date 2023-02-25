@@ -106,11 +106,11 @@ namespace WebApi.Controllers
 
 
         }
-        [HttpGet("requests/{profileId}")]
-        public async Task<ServiceResponse<List<LoanAccount>>> GetAllRequests(string profileId)
+        [HttpGet("requests/{reference}")]
+        public async Task<ServiceResponse<List<LoanAccount>>> GetAllRequests(string reference)
         {
 
-            var response = await _bankTransferManager.GetLoanRequests(profileId);
+            var response = await _bankTransferManager.GetLoanRequests(reference);
             var responses = response.ResponseObject;
 
             if (!response.Successful)
