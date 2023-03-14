@@ -117,7 +117,7 @@ namespace Apps.Core.Proxy
         {
             var webclient = new WebClient();
 
-            var url = new Uri(request.CallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/banktransfer/callback");
+            var url = new Uri(request.CallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/callback");
             var payload = new
             {
                 Amount = Convert.ToInt32(request.Amount),
