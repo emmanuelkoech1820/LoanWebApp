@@ -565,13 +565,14 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.VALIDATION_RULE_BROKEN
                 };
             }
-            var loanRequest = request.ResponseObject;
-            loanRequest.RepaidAmount = loanRepayment.Amount;
-            loanRequest.LoanBalance = loanRequest.DisbursedAmount - loanRepayment.Amount;
-            _context.Update(loanRequest);
-            _context.SaveChanges();
+           
             if(model.StatusCode == "0")
             {
+                var loanRequest = request.ResponseObject;
+                loanRequest.RepaidAmount = loanRepayment.Amount;
+                loanRequest.LoanBalance = loanRequest.DisbursedAmount - loanRepayment.Amount;
+                _context.Update(loanRequest);
+                _context.SaveChanges();
                 await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
             }            
 
