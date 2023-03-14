@@ -316,8 +316,8 @@ namespace WebApi.Controllers
                 StatusMessage = StatusMessage.SUCCESSFUl
             };
         }
-        [HttpPost("callback")]
         [AllowAnonymous]
+        [HttpPost("callback")]       
         public async Task<ServiceResponse> STKCallBack(STKCallback model)
         {
             var response = await _bankTransferManager.STKCallback(model);

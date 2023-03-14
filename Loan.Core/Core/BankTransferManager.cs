@@ -521,6 +521,7 @@ namespace Apps.Core.Core
                 Status = RepaymentStatus.STKPushReceived,
                 SourcePhoneNumber = request.PhoneNumber,
                 Reference = request.Reference,
+                LoanId = request.LoanReference
                 
             };
             _context.Update(LoanRepayment);
@@ -554,7 +555,7 @@ namespace Apps.Core.Core
         {
 
             var loanRepayment = await _context.loanRepayment.FirstOrDefaultAsync(c => c.Reference == model.Reference);
-            var request = await GetLoanRequest(loanRepayment.Reference);
+            var request = await GetLoanRequest(loanRepayment.LoanId);
             if (request.ResponseObject == null)
             {
                 return new ServiceResponse
