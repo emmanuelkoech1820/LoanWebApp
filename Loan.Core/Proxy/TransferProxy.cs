@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Apps.Core.Proxy
@@ -111,34 +112,47 @@ namespace Apps.Core.Proxy
             return response;
         }
 
-        public async Task<ServiceResponse> PayLoan(PayLoanBindingModel request)
+
+        public async Task<(string request, ServiceResponse)> PayLoan(PayLoanBindingModel request)
         {
+            var webclient = new WebClient();
+
+            var url = new Uri(request.CallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/banktransfer/callback");
+            var payload = new
+            {
+                Amount = Convert.ToInt32(request.Amount),
+                Reference = request.Reference,
+                PhoneNumber = request.PhoneNumber,
+                CallBackUrl = url,
+                ErrorCallBackUrl = url,
+                countryCode = request.CountryCode ?? "KE",
+                telco = request.Telco ?? "SAF"
+            };
+            var pay = JsonConvert.SerializeObject(payload);
+
             try
             {
-                var payload = new
-                {
-                    Amount = Convert.ToInt32(request.Amount),
-                    Reference = request.Reference,
-                    PhoneNumber = request.PhoneNumber,
-                    CallBackUrl = request.CallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/banktransfer/callback",
-                    ErrorCallBackUrl = request.ErrorCallBackUrl ?? "http://emmanuelkoech-001-site1.gtempurl.com/banktransfer/callback",
-                    countryCode = request.CountryCode ?? "KE",
-                    telco = request.Telco ?? "SAF"
-                };
+               
                 var accessToken = await GetAccessToken();
                 var header = new Dictionary<string, string>();
-                header.Add("Authorization", $"{accessToken?.TokenType} {accessToken?.AccessToken}");
-                var pay = JsonConvert.SerializeObject(payload);
-                var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: payload, headers: header);
-                if (response == null || response?.StatusCode != "00")
-                    return new ServiceResponse { StatusCode = "01", StatusMessage = response?.StatusMessage ?? "failed" };
-                       
-                return response;
+                // header.Add("Authorization", $"{accessToken?.TokenType} {accessToken?.AccessToken}");
+                webclient.Headers[HttpRequestHeader.ContentType] = "application/json";
+                webclient.Headers[HttpRequestHeader.Authorization] = $"{accessToken?.TokenType} {accessToken?.AccessToken}";
+                string response = webclient.UploadString(new Uri($"{_stkUrl}"), "POST", pay);
+                var resp = JsonConvert.DeserializeObject<ServiceResponse>(response);
+
+                // var response = await _httpClient.PostJSONAsync<ServiceResponse>($"{_stkUrl}", payload: payload, headers: header);
+                // if (response == null || response?.StatusCode != "00")
+                //return (pay, new ServiceResponse { StatusCode = "01", StatusMessage = response?.StatusMessage ?? "failed" });
+                 if (resp == null || resp?.StatusCode != "00")
+                        return (pay, new ServiceResponse { StatusCode = "01", StatusMessage = resp?.StatusMessage ?? "failed" });
+
+                return (pay, resp);
             }
             catch (FlurlHttpException ex)
             {
                 var message = await ex.GetResponseJsonAsync<ServiceResponse>();
-                return new ServiceResponse { StatusMessage = JsonConvert.SerializeObject(ex.Message) ?? message?.StatusMessage, StatusCode = message?.StatusCode };
+                return (pay, new ServiceResponse { StatusMessage = JsonConvert.SerializeObject(ex.Message) ?? message?.StatusMessage, StatusCode = message?.StatusCode });
             }
         }
         public async Task<ServiceResponse> SendSms(PayLoanBindingModel request)

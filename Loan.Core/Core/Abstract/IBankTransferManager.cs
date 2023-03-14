@@ -9,6 +9,7 @@ namespace Apps.Core.Abstract
 {
     public interface IBankTransferManager
     {
+        Task<ServiceResponse<LoanAccount>> GetLoanRequest(string reference);
         Task<ServiceResponse<BankTransferRequest>> GetBankTransferRequest(string reference);
         Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests(string profileId);
         Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests();

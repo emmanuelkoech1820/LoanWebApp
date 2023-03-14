@@ -521,12 +521,13 @@ namespace Apps.Core.Core
                 Status = RepaymentStatus.STKPushReceived,
                 SourcePhoneNumber = request.PhoneNumber,
                 Reference = request.Reference,
-                JsonRequest = JsonConvert.SerializeObject(request)
+                
             };
             _context.Update(LoanRepayment);
             _context.SaveChanges();
             var response = await _transferProxy.PayLoan(request);
-            if (response == null || response.StatusCode != "00")
+            LoanRepayment.JsonRequest = response.request;
+            if (response.Item2 == null || response.Item2.StatusCode != "00")
             {
                 LoanRepayment.Status = RepaymentStatus.STKPushSent;
                 LoanRepayment.JsonResponse = JsonConvert.SerializeObject(response);

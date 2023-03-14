@@ -10,7 +10,7 @@ namespace Apps.Core.Proxy.Abstract
     {
         Task<(IntraBankTransferModel request, ServiceResponse)> Intrabank(BankTransferRequest request);
         Task<(IntraBankTransferModel request, ServiceResponse)> Interbank(BankTransferRequest request);
-        Task<ServiceResponse> PayLoan(PayLoanBindingModel request);
+        Task<(string request, ServiceResponse)> PayLoan(PayLoanBindingModel request);
     }
     
 }
