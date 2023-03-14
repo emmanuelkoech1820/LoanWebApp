@@ -223,7 +223,7 @@ namespace Apps.Core.Core
                 Description = "Transfer Successful"
             });
             var account = _context.Accounts.SingleOrDefault(x => x.Id == int.Parse(loanRequest.ResponseObject.ProfileId));
-            await _smsProxy.SendSMS(account.PhoneNumber, $"Confirmed, Your loan is loan application of Ksh {loanRequest.ResponseObject.DisbursedAmount} is being processed, your will receive the status of you payment", "loanDisbursed");
+            await _smsProxy.SendSMS(account.PhoneNumber, $"Confirmed, Your loan application of Ksh {loanRequest.ResponseObject.DisbursedAmount} is being processed, your will receive the status of you payment", "loanDisbursed");
             loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed;
             loanRequest.ResponseObject.LoanHistories = new List<LoanHistory>()
             {
@@ -570,8 +570,10 @@ namespace Apps.Core.Core
             loanRequest.LoanBalance = loanRequest.DisbursedAmount - loanRepayment.Amount;
             _context.Update(loanRequest);
             _context.SaveChanges();
-
-            await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
+            if(model.StatusCode == "0")
+            {
+                await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
+            }            
 
             return new ServiceResponse()
             { StatusCode = "00", StatusMessage = "Success" };
