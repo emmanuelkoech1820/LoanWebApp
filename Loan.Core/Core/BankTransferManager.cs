@@ -222,6 +222,7 @@ namespace Apps.Core.Core
                 Action = BankTransferAction.TRANSFER_SUCCESS,
                 Description = "Transfer Successful"
             });
+            var account = _context.Accounts.SingleOrDefault(x => x.Id == int.Parse(loanRequest.ResponseObject.ProfileId));
             await _smsProxy.SendSMS("", $"Confirmed, Your loan is repayment of Ksh {loanRequest.ResponseObject.DisbursedAmount} is received, Loan balance is {loanRequest.ResponseObject.DisbursedAmount} as at {DateTime.Now}", "loanDisbursed");
             loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed;
             loanRequest.ResponseObject.LoanHistories = new List<LoanHistory>()
