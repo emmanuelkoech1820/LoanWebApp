@@ -43,7 +43,7 @@ namespace WebApi.Services
         AccountResponse Update(int id, UpdateRequest model);
         void Delete(int id);
         Task<ServiceResponse> VerifyOtp(VerifyPhoneNumberModel model);
-        Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber);
+        Task<ServiceResponse<AccountResponse>> GetUserById(int Id);
         Task<ServiceResponse<AccountResponse>> GetDetailsByPhone(string phoneNumber);
     }
 
@@ -586,9 +586,9 @@ namespace WebApi.Services
             };
         }
 
-        public async Task<ServiceResponse<AccountResponse>> GetUserByPhone(string phoneNumber)
+        public async Task<ServiceResponse<AccountResponse>> GetUserById(int id)
         {
-            var account = _context.Accounts.SingleOrDefault(x => x.PhoneNumber == phoneNumber);
+            var account = _context.Accounts.SingleOrDefault(x => x.Id == id);
 
             if (account == null)
             {

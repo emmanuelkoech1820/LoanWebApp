@@ -2,7 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using WebApi.Const;
 using WebApi.Consts;
@@ -18,13 +23,15 @@ namespace WebApi.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
         public AccountsController(
             IAccountService accountService,
-            IMapper mapper)
+            IMapper mapper, IConfiguration configuration)
         {
             _accountService = accountService;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         [HttpPost("authenticate")]
@@ -154,10 +161,12 @@ namespace WebApi.Controllers
             var resetResponse = _accountService.ResetPassword(model);
             return Ok(resetResponse);
         }
-        [HttpGet("details/{phoneNumber}")]
-        public async Task<ServiceResponse<AccountResponse>> GetUserByPhoneNumber(string phoneNumber)
+        [HttpGet("details")]
+        public async Task<ServiceResponse<AccountResponse>> GetUserById()
         {
-            if(phoneNumber == null)
+            var context = HttpContext;
+            var referenceId = Token(context).Result;
+            if (referenceId == null)
             {
                 return new ServiceResponse<AccountResponse>
                 {
@@ -166,7 +175,7 @@ namespace WebApi.Controllers
 
                 };
             }
-            return await _accountService.GetUserByPhone(phoneNumber);
+            return await _accountService.GetUserById(int.Parse(referenceId));
                
         }
 
@@ -244,6 +253,37 @@ namespace WebApi.Controllers
                 return Request.Headers["X-Forwarded-For"];
             else
                 return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+        }
+        public async Task<string> Token(HttpContext context)
+        {
+            try
+            {
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var config = _configuration["AppSettings:Secret"];
+                var key = Encoding.ASCII.GetBytes(config);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var id = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                return id.ToString();
+                //// attach account to context on successful jwt validation
+                //context.Items["Account"] = await dataContext.Accounts.FindAsync(accountId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+                // do nothing if jwt validation fails
+                // account is not attached to context so request won't have access to secure routes
+            }
         }
     }
 }
