@@ -25,10 +25,12 @@ namespace Apps.Core.Models
         public string VehicleReferenceNumber { get; set; }
         public string VehicleRegistrationNumber { get; set; }
     }
-    public class LoanApproval : LoanBindingModel
+    public class LoanApproval 
     {
         [Required]
+        public string Reference { get; set; }
         public string SourceAccount { get; set; }
+        [Required]
         public LoanStatus LoanStatus { get; set; }
 
         public DisbursmentStatus Status { get; set; }
