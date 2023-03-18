@@ -74,7 +74,7 @@ namespace Apps.Core.Proxy
         {
             var payload = new IntraBankTransferModel
             {
-                BankId = request.BankId,
+                BankId = "54",
                 Amount = request.Amount,
                 DestinationAccount = request.DestinationAccount,
                 Narration = request.Narration,

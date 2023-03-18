@@ -1,4 +1,6 @@
+using Apps.Data.Entities;
 using System;
+using System.Collections.Generic;
 
 namespace WebApi.Consts.Accounts
 {
@@ -14,5 +16,11 @@ namespace WebApi.Consts.Accounts
         public DateTime Created { get; set; }
         public DateTime? Updated { get; set; }
         public bool IsVerified { get; set; }
+    }
+    public class AdminDetailsResponse
+    {
+        public AccountResponse accountResponse { get; set; }
+        public List<LoanAccount> LoanAccounts { get; set; }
+        public List<Vehicle> vehicle { get; set; }
     }
 }

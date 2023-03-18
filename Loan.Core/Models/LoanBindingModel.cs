@@ -1,13 +1,17 @@
 using Apps.Data.Entities;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Apps.Core.Models
 {
     public class LoanBindingModel
     {
+        [Required]
         public string Reference { get; set; }
+        [Required]
         public decimal Amount { get; set; }
         public string Currency { get; set; }
+        [Required]
         public string DestinationAccount { get; set; }
         public string DestinationBankCode { get; set; }
         public string DestinationName { get; set; }
@@ -17,13 +21,15 @@ namespace Apps.Core.Models
         public string LoanReason { get; set; }
         public string ProfileId { get; set; }
         public string RegistrationNumber { get; set; }
+        [Required]
         public string VehicleReferenceNumber { get; set; }
         public string VehicleRegistrationNumber { get; set; }
     }
     public class LoanApproval : LoanBindingModel
     {
+        [Required]
         public string SourceAccount { get; set; }
-        public bool LoanApprovalStatus { get; set; }
+        public LoanStatus LoanStatus { get; set; }
 
         public DisbursmentStatus Status { get; set; }
        

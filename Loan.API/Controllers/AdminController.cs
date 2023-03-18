@@ -21,6 +21,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Core.Helpers;
 using Microsoft.Extensions.Configuration;
+using WebApi.Consts.Accounts;
 
 namespace WebApi.Controllers
 {
@@ -78,7 +79,7 @@ namespace WebApi.Controllers
             }
         }
 
-       
+
         [HttpGet("loans")]
         public async Task<ServiceResponse<List<LoanAccount>>> GetAllAPlliedLoans(int count = 20)
         {
@@ -131,5 +132,59 @@ namespace WebApi.Controllers
             };
 
         }
+        [HttpGet("userdetails/{id}")]
+        public async Task<ServiceResponse<AccountResponse>> GetUserById(int id)
+        {
+            if (id == default(int))
+            {
+                return new ServiceResponse<AccountResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.INVALID_INPUT_PARAM,
+
+                };
+            }
+            return await _accountService.GetUserById(id);
+
+        }
+        [HttpGet("userdetailslong/{id}")]
+        public async Task<ServiceResponse<AdminDetailsResponse>> GetUserByIdLong(int id)
+        {
+            if (id == default(int))
+            {
+                return new ServiceResponse<AdminDetailsResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.INVALID_INPUT_PARAM,
+
+                };
+            }
+            var account = await _accountService.GetUserById(id);
+            if (!account.Successful || account.ResponseObject == null)
+            {
+                return new ServiceResponse<AdminDetailsResponse>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.INVALID_INPUT_PARAM,
+
+                };
+            }
+            var vehicle = await _bankTransferManager.GetVehicles(id.ToString());
+            var loan = await _bankTransferManager.GetLoanRequests(id.ToString());
+            return new ServiceResponse<AdminDetailsResponse>
+            {
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = new AdminDetailsResponse()
+                {
+                    accountResponse = account?.ResponseObject,
+                    LoanAccounts = loan?.ResponseObject,
+                    vehicle = vehicle?.ResponseObject
+                }
+
+            };
+
+        }
+
     }
 }

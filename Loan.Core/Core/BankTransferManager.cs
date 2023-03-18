@@ -132,7 +132,7 @@ namespace Apps.Core.Core
         public async Task<ServiceResponse<List<LoanAccount>>> GetLoanRequests()
         {
 
-            var result = await _context.LoanAccount.Where(c => !c.LoanAprroved).ToListAsync();
+            var result = await _context.LoanAccount.Where(c => c.LoanStatus == LoanStatus.LoanApplied).ToListAsync();
             if (result == null)
             {
                 return new ServiceResponse<List<LoanAccount>>
@@ -180,7 +180,7 @@ namespace Apps.Core.Core
 
         }
 
-        public async Task<ServiceResponse> Transfer(BankTransferRequest request, string profileId)
+        public async Task<ServiceResponse> Transfer(BankTransferRequest request, string profileId, LoanStatus LoanStatus)
         {
             if (request == null || request.Status != BankTransferStatus.PENDING_DEBIT)
             {
@@ -189,8 +189,16 @@ namespace Apps.Core.Core
             request.Status = BankTransferStatus.PENDING_Transfer;
             var result = new ServiceResponse();
             var loanRequest = await GetLoanRequest(request.LoanRequestId);
+            if(LoanStatus != LoanStatus.Loan_Disubursed)
+            {
+                loanRequest.ResponseObject.LoanStatus = LoanStatus;
+                _context.Update(loanRequest.ResponseObject);
+                _context.SaveChanges();
+            }
+            request.Amount = loanRequest.ResponseObject.RequestedAmount;
+            var transType =  _configuration[$"Transfer:Destination:{loanRequest.ResponseObject.DestinationAccount}:TransferType"];
             object payld = new object();
-            if (request.TransferType.ToLower() == "intrabank")
+            if (transType.ToLower() == "intrabank")
             {
                 (payld, result) = await _transferProxy.Intrabank(request);
             }
@@ -204,12 +212,17 @@ namespace Apps.Core.Core
                 Action = "Transfer result",
                 Description = $"JsonResult: {JsonConvert.SerializeObject(payld)}  {JsonConvert.SerializeObject(result)}"
             });
-            _context.Update(loanRequest.ResponseObject);
-            _context.SaveChanges();
+           
             if (result == null || !result.Successful)
             {
 
                 request.Status = BankTransferStatus.FAILED;
+                loanRequest.ResponseObject.Amount = request.Amount;
+                loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed_Failed;
+                loanRequest.ResponseObject.LoanStatus = LoanStatus.Loan_Disburse_Tocustomer_failed;
+                _context.Update(loanRequest.ResponseObject);
+                _context.Update(request);
+                _context.SaveChanges();
                 return new ServiceResponse
                 {
                     StatusCode = result?.StatusCode ?? ServiceStatusCode.TRANSACTION_FAILED,
@@ -217,6 +230,12 @@ namespace Apps.Core.Core
                 };
 
             }
+            loanRequest.ResponseObject.Amount = request.Amount;
+            loanRequest.ResponseObject.DisbursmentStatus = DisbursmentStatus.Disbursed;
+            loanRequest.ResponseObject.LoanStatus = LoanStatus.Loan_Disubursed;
+            loanRequest.ResponseObject.DisbursedAmount = request.Amount;
+            _context.Update(loanRequest.ResponseObject);
+            _context.SaveChanges();
             request.Histories.Add(new History
             {
                 Action = BankTransferAction.TRANSFER_SUCCESS,
@@ -246,6 +265,8 @@ namespace Apps.Core.Core
                 };
             }
             request.Status = BankTransferStatus.SUCCESSFUL;
+            _context.Update(request);
+            _context.SaveChanges();
             return new ServiceResponse
             {
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
@@ -271,7 +292,7 @@ namespace Apps.Core.Core
             }
             var request = await GetBankTransferRequest(model.Reference);
             var loanRequest = await GetLoanRequest(model.LoanReference);
-            if (loanRequest.ResponseObject == null || !loanRequest.ResponseObject.LoanAprroved)
+            if (loanRequest.ResponseObject == null || loanRequest.ResponseObject.LoanStatus != LoanStatus.loanApproved)
             {
                 return new ServiceResponse<BankTransferRequest>
                 {
@@ -279,7 +300,7 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.UNAPPROVED_REQUEST
                 };
             }
-
+            var req = loanRequest.ResponseObject;
             if (request.ResponseObject != null)
             {
                 return new ServiceResponse<BankTransferRequest>
@@ -288,21 +309,24 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.DUPLICATE_REQUEST
                 };
             }
+            var accountDetails = _configuration[$"Transfer:{req.DestinationAccount}:bankId"];
+            var transferType = _configuration[$"Transfer:{req.DestinationAccount}:TransferType"];
+
             request.ResponseObject = new BankTransferRequest()
             {
-                Amount = model.Amount,
-                BankId = model.BankId,
-                Currency = model.Currency,
-                DestinationAccount = model.DestinationAccount,
-                DestinationBankCode = model.DestinationBankCode,
-                DestinationName = model.DestinationName,
-                Narration = model.Narration,
+                Amount = req.Amount,
+                BankId = accountDetails,
+                Currency = req.Currency,
+                DestinationAccount = req.DestinationAccount,
+                DestinationBankCode = req.DestinationBankCode,
+                DestinationName = req.DestinationName,
+                Narration = req.Narration,
                 PaymentReason = model.PaymentReason,
                 SourceAccount = model.SourceAccount,
                 Status = BankTransferStatus.PENDING_VALIDATION,
                 Reference = model.Reference,
                 LoanRequestId = model.LoanReference,
-                TransferType = model.TransferType,
+                TransferType = transferType,
                 Histories = new List<History>
                 {
                     new History
@@ -339,6 +363,15 @@ namespace Apps.Core.Core
             {
                 throw new ArgumentNullException(nameof(model.Reference));
             }
+            var vehicle = await GetVehicle(model.VehicleReferenceNumber);
+            if (!vehicle.Successful || vehicle?.ResponseObject == null)
+            {
+                return new ServiceResponse<LoanAccount>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.VEHICLE_NOT_FOUND
+                };
+            };
             var request = await GetLoanRequest(model.Reference);
             if (request.ResponseObject != null)
             {
@@ -348,16 +381,27 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.DUPLICATE_REQUEST
                 };
             }
+            var destbankId = _configuration[$"Transfer:Destination:{model.DestinationAccount}:bankId"];
+            var destName = _configuration[$"Transfer:Destination:{model.DestinationAccount}:name"];
+            if (string.IsNullOrEmpty(destbankId))
+            {
+                return new ServiceResponse<LoanAccount>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.INVALID_DEST_ACCOUNT
+                };
+            }
+            
             request.ResponseObject = new LoanAccount()
             {
                 RequestedAmount = model.Amount,
-                Currency = model.Currency,
+                Currency = "KES",//model.Currency,
                 DestinationAccount = model.DestinationAccount,
-                DestinationName = model.DestinationName,
-                LoanReason = model.LoanReason,
+                DestinationName = destName,
+                LoanReason ="VehicleInsurance" ?? model.LoanReason,
                 Reference = model.Reference,
-                DestinationBankCode = model.DestinationBankCode,
-                RepaymentPeriod = model.RepaymentPeriod,
+                DestinationBankCode = destbankId,
+                RepaymentPeriod = 30,
                 ProfileId = model.ProfileId,
                 LoanHistories = new List<LoanHistory>
                 {
@@ -369,7 +413,8 @@ namespace Apps.Core.Core
                     }
                 },
                 VehicleReferenceNumber = model.VehicleReferenceNumber,
-                VehicleRegistrationNumber = model.VehicleRegistrationNumber
+                VehicleRegistrationNumber = model.VehicleRegistrationNumber,
+                LoanStatus = LoanStatus.LoanApplied
             };
 
             _context.Update(request.ResponseObject);
@@ -403,10 +448,8 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.UNAPPROVED_REQUEST
                 };
             }
-            loanRequest.ResponseObject.DisbursedAmount = model.Amount;
             loanRequest.ResponseObject.DisbursmentStatus = model.Status;
-            loanRequest.ResponseObject.DestinationAccount = model.DestinationAccount;
-            loanRequest.ResponseObject.LoanAprroved = model.LoanApprovalStatus;
+            loanRequest.ResponseObject.LoanStatus = model.LoanStatus;
             loanRequest.ResponseObject.LoanHistories = new List<LoanHistory>()
             {
                 new LoanHistory
@@ -490,6 +533,25 @@ namespace Apps.Core.Core
                 ResponseObject = result
             };
         }
+        public async Task<ServiceResponse<Vehicle>> GetVehicle(string carRef)
+        {
+            var result =  _context.Vehicles.FirstOrDefault(c => c.Reference == carRef);
+            if (result == null)
+            {
+                return new ServiceResponse<Vehicle>
+                {
+                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
+                    StatusMessage = StatusMessage.REQUEST_NOT_FOUND
+                };
+            };
+            return new ServiceResponse<Vehicle>
+            {
+
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = result
+            };
+        }
 
         public async Task<ServiceResponse> PayLoan(PayLoanBindingModel request, string profileId)
         {
@@ -514,7 +576,7 @@ namespace Apps.Core.Core
 
             }
             var LoanRepayment = loanRepaymentRequest.ResponseObject;
-             LoanRepayment = new LoanRepayment()
+            LoanRepayment = new LoanRepayment()
             {
                 Amount = request.Amount,
                 ProfileId = profileId,
@@ -523,7 +585,7 @@ namespace Apps.Core.Core
                 SourcePhoneNumber = request.PhoneNumber,
                 Reference = request.Reference,
                 LoanId = request.LoanReference
-                
+
             };
             _context.Update(LoanRepayment);
             _context.SaveChanges();
@@ -565,8 +627,8 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.VALIDATION_RULE_BROKEN
                 };
             }
-           
-            if(model.StatusCode == "0")
+
+            if (model.StatusCode == "0")
             {
                 var loanRequest = request.ResponseObject;
                 loanRequest.RepaidAmount = loanRepayment.Amount;
@@ -574,7 +636,7 @@ namespace Apps.Core.Core
                 _context.Update(loanRequest);
                 _context.SaveChanges();
                 await _smsProxy.SendSMS(loanRepayment.SourcePhoneNumber, $"Confirmed, Your loan repayment of Ksh {loanRepayment.Amount} is received, Loan balance is {loanRequest.LoanBalance} as at {DateTime.Now}", "loanRepaid");
-            }            
+            }
 
             return new ServiceResponse()
             { StatusCode = "00", StatusMessage = "Success" };
@@ -582,7 +644,7 @@ namespace Apps.Core.Core
 
         public async Task<ServiceResponse<List<LoanAccount>>> GetAppliedLoans(int count)
         {
-            var result = await _context.LoanAccount.Where(c => !c.LoanAprroved).Take(count).ToListAsync();
+            var result = await _context.LoanAccount.Where(c => c.LoanStatus == LoanStatus.LoanApplied).Take(count).ToListAsync();
             if (result == null)
             {
                 return new ServiceResponse<List<LoanAccount>>

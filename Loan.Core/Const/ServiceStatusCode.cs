@@ -39,6 +39,8 @@ namespace Core.Const
         public const string TRANSFER_FAILED = "Bank transfer Failed.";
         public const string DUPLICATE_REQUEST = "Duplicate Request";
         public const string UNAPPROVED_REQUEST = "Request not approved";
+        public const string INVALID_DEST_ACCOUNT = "Invalid dest account";
+        public const string VEHICLE_NOT_FOUND = "Vehicle not found";
     }
     public class BankTransferStatus
     {

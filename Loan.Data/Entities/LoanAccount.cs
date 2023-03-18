@@ -10,7 +10,7 @@ namespace Apps.Data.Entities
         public string ProfileId { get; set; }
         public DisbursmentStatus DisbursmentStatus { get; set; }
         //public LoanApprovalStatus LoanAprroved { get; set; }
-        public bool LoanAprroved { get; set; }
+        public LoanStatus LoanStatus { get; set; }
         public decimal DisbursedAmount { get; set; }
         public decimal RepaidAmount { get; set; }
         public decimal RequestedAmount { get; set; }
@@ -46,12 +46,20 @@ namespace Apps.Data.Entities
     {
         Pending,
         Disbursed,
-        Rejected
+        Rejected,
+        Disbursed_Failed
+
     }
-    public enum LoanApprovalStatus
+    public enum LoanStatus
     {
-        Pending,
-        Approved,
-        Rejected
+        LoanApplied =1,
+        loanApproved,
+        Rejected_By_Approver,
+        Loan_Disubursed,
+        Loan_Rejected_By_Disburser,
+        Loan_Repaid_partially,
+        Loan_Repaid_in_full,
+        Loan_Disburse_Tocustomer_failed
+
     }
 }

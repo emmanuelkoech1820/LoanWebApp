@@ -38,6 +38,7 @@ namespace WebApi.Const
         public const string REQUEST_VALID = "Bank transfer request valid.";
         public const string TRANSFER_FAILED = "Bank transfer Failed.";
         public const string INVALID_CLIENT_ID = "Invalid client Id";
+        public const string INVALID_INPUT_PARAM = "Invalid input data";
     }
     public class BankTransferStatus
     {

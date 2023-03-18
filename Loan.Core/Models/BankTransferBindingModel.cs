@@ -1,12 +1,17 @@
+using Apps.Data.Entities;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Apps.Core.Models
 {
     public class BankTransferBinding
     {
+        [Required]
         public string Reference { get; set; }
+        [Required]
         public string LoanReference { get; set; }
         public decimal Amount { get; set; }
+        [Required]
         public string SourceAccount { get; set; }
         public string DestinationAccount { get; set; }
         public string PaymentReason { get; set; }
@@ -16,12 +21,17 @@ namespace Apps.Core.Models
         public string DestinationBankCode { get; set; }
         public string TransferType { get; set; }
         public string Currency { get; set; }
+        [Required]
+        public LoanStatus LoanStatus { get; set; }
 
     }
     public class PayLoanBindingModel
     {
+        [Required]
         public string Reference { get; set; }
+        [Required]
         public string LoanReference { get; set; }
+        [Required]
         public string PhoneNumber { get; set; }
         public decimal Amount { get; set; }
         public string Telco { get; set; } = "SAF";

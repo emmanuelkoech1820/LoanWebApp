@@ -85,6 +85,15 @@ namespace WebApi.Controllers
             var context = HttpContext;
             var user = Token( context);
             var response = await _bankTransferManager.InitiateRequest(model);
+            if (!response.Successful)
+            {
+                return new ServiceResponse
+                {
+                    StatusCode = response.StatusCode,
+                    StatusMessage = response.StatusMessage,
+
+                };
+            }
             var responses = response.ResponseObject;
 
             var validate = await _bankTransferManager.ValidateRequest(responses);
@@ -97,7 +106,7 @@ namespace WebApi.Controllers
 
                 };
             }
-            return (await Complete(responses));
+            return (await Complete(responses, model.LoanStatus));
 
             //if (!response.Successful)
             //{
@@ -117,12 +126,12 @@ namespace WebApi.Controllers
 
         }
         [HttpPost("Complete")]
-        public async Task<ServiceResponse> Complete(BankTransferRequest model)
+        public async Task<ServiceResponse> Complete(BankTransferRequest model, LoanStatus LoanStatus)
         {
             var context = HttpContext;
             var user = Token(context);
             model.ProfileId = user.Result;
-            var complete = await _bankTransferManager.Transfer(model, model.ProfileId);
+            var complete = await _bankTransferManager.Transfer(model, model.ProfileId, LoanStatus);
             if (complete.StatusCode != "00")
             {
                 return new ServiceResponse
