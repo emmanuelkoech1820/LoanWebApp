@@ -180,8 +180,8 @@ namespace WebApi.Controllers
         {
             var context = HttpContext;
             var user = Token(context);
-            model.ProfileId = user.Result;
-            var response = await _bankTransferManager.ApproveLoanRequest(model, model.ProfileId);
+            string profileId = user.Result;
+            var response = await _bankTransferManager.ApproveLoanRequest(model, profileId);
             var responses = response.ResponseObject;
 
             if (!response.Successful)

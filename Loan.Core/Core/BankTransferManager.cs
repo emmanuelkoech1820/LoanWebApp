@@ -455,7 +455,7 @@ namespace Apps.Core.Core
                 new LoanHistory
                 {
                     Action = "Approval",
-                    BorrowedAmount = model.Amount,
+                    BorrowedAmount = loanRequest.ResponseObject.RequestedAmount,
                     Description = "Loan Approved",
                     PerformedBy = $"Loan approved by {profileId}"
                 }
