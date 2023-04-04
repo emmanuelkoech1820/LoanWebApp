@@ -189,14 +189,14 @@ namespace Apps.Core.Core
             request.Status = BankTransferStatus.PENDING_Transfer;
             var result = new ServiceResponse();
             var loanRequest = await GetLoanRequest(request.LoanRequestId);
-            if(LoanStatus != LoanStatus.Loan_Disubursed)
+            if (LoanStatus != LoanStatus.Loan_Disubursed)
             {
                 loanRequest.ResponseObject.LoanStatus = LoanStatus;
                 _context.Update(loanRequest.ResponseObject);
                 _context.SaveChanges();
             }
             request.Amount = loanRequest.ResponseObject.RequestedAmount;
-            var transType =  _configuration[$"Transfer:Destination:{loanRequest.ResponseObject.DestinationAccount}:TransferType"];
+            var transType = _configuration[$"Transfer:Destination:{loanRequest.ResponseObject.DestinationAccount}:TransferType"];
             object payld = new object();
             if (transType.ToLower() == "intrabank")
             {
@@ -212,7 +212,7 @@ namespace Apps.Core.Core
                 Action = "Transfer result",
                 Description = $"JsonResult: {JsonConvert.SerializeObject(payld)}  {JsonConvert.SerializeObject(result)}"
             });
-           
+
             if (result == null || !result.Successful)
             {
 
@@ -381,26 +381,26 @@ namespace Apps.Core.Core
                     StatusMessage = StatusMessage.DUPLICATE_REQUEST
                 };
             }
-            var destbankId = _configuration[$"Transfer:Destination:{model.DestinationAccount}:bankId"];
-            var destName = _configuration[$"Transfer:Destination:{model.DestinationAccount}:name"];
-            if (string.IsNullOrEmpty(destbankId))
-            {
-                return new ServiceResponse<LoanAccount>
-                {
-                    StatusCode = ServiceStatusCode.INVALID_REQUEST,
-                    StatusMessage = StatusMessage.INVALID_DEST_ACCOUNT
-                };
-            }
-            
+            //var destbankId = _configuration[$"Transfer:Destination:{model.DestinationAccount}:bankId"];
+            //var destName = _configuration[$"Transfer:Destination:{model.DestinationAccount}:name"];
+            //if (string.IsNullOrEmpty(destbankId))
+            //{
+            //    return new ServiceResponse<LoanAccount>
+            //    {
+            //        StatusCode = ServiceStatusCode.INVALID_REQUEST,
+            //        StatusMessage = StatusMessage.INVALID_DEST_ACCOUNT
+            //    };
+            //}
+
             request.ResponseObject = new LoanAccount()
             {
                 RequestedAmount = model.Amount,
                 Currency = "KES",//model.Currency,
                 DestinationAccount = model.DestinationAccount,
-                DestinationName = destName,
-                LoanReason ="VehicleInsurance" ?? model.LoanReason,
+                DestinationName = model.DestinationName,//destName,
+                LoanReason = "VehicleInsurance" ?? model.LoanReason,
                 Reference = model.Reference,
-                DestinationBankCode = destbankId,
+                DestinationBankCode = model.DestinationAccount,// destbankId,
                 RepaymentPeriod = 30,
                 ProfileId = model.ProfileId,
                 LoanHistories = new List<LoanHistory>
@@ -535,7 +535,7 @@ namespace Apps.Core.Core
         }
         public async Task<ServiceResponse<Vehicle>> GetVehicle(string carRef)
         {
-            var result =  _context.Vehicles.FirstOrDefault(c => c.Reference == carRef);
+            var result = _context.Vehicles.FirstOrDefault(c => c.Reference == carRef);
             if (result == null)
             {
                 return new ServiceResponse<Vehicle>
@@ -660,6 +660,33 @@ namespace Apps.Core.Core
                 StatusMessage = StatusMessage.SUCCESSFUl,
                 ResponseObject = result
             };
+        }
+
+        public async Task<ServiceResponse<List<TransactingAccount>>> GetTransactingAccounts()
+        {
+            List<TransactingAccount> list = new List<TransactingAccount>();
+            var transType = _configuration.GetSection($"Transfer");
+            foreach (var section in transType.GetChildren())
+            {
+                var acc = new TransactingAccount()
+                {
+                    AccountNumber = section.GetValue<string>("AccountNumber"),
+                    AccountClass = section.GetValue<string>("AccountClass"),
+                    BankId = section.GetValue<string>("BankId"),
+                    BankName = section.GetValue<string>("BankName"),
+                    AccountName = section.GetValue<string>("Name"),
+                    TransferType = section.GetValue<string>("TransferType")
+                };
+                list.Add(acc);
+            }
+            return new ServiceResponse<List<TransactingAccount>>
+            {
+
+                StatusCode = ServiceStatusCode.SUCCESSFUL,
+                StatusMessage = StatusMessage.SUCCESSFUl,
+                ResponseObject = list
+            };
+
         }
     }
 }

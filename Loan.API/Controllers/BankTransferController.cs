@@ -21,6 +21,8 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Core.Helpers;
 using Microsoft.Extensions.Configuration;
+using WebApi.Consts.Accounts;
+using Apps.Core.Models.SMSModels;
 
 namespace WebApi.Controllers
 {
@@ -345,6 +347,16 @@ namespace WebApi.Controllers
                 StatusMessage = StatusMessage.SUCCESSFUl
             };
         }
-
+        [HttpGet("accounts")]
+        public async Task<ServiceResponse<List<TransactingAccount>>> GetTrasactingAccounts()
+        {
+            var response =  await _bankTransferManager.GetTransactingAccounts();
+            return new ServiceResponse<List<TransactingAccount>>
+            {
+                StatusCode = response.StatusCode,
+                StatusMessage = response.StatusMessage,
+                ResponseObject = response.ResponseObject
+            };
+        }
     }
 }

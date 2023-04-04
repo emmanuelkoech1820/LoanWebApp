@@ -54,5 +54,14 @@ namespace Apps.Core.Models
         public string Telco { get; set; }
         public string OperationType { get; set; }
     }
+    public class TransactingAccount
+    {
+        public string AccountNumber { get; set; }
+        public string BankName { get; set; }
+        public string BankId { get; set; }
+        public string AccountClass { get; set; }
+        public string TransferType { get; set; }
+        public string AccountName { get; set; }
+    }
 
 }
