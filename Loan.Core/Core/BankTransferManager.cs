@@ -644,7 +644,7 @@ namespace Apps.Core.Core
 
         public async Task<ServiceResponse<List<LoanAccount>>> GetAppliedLoans(int count)
         {
-            var result = await _context.LoanAccount.Where(c => c.LoanStatus == LoanStatus.LoanApplied).Take(count).ToListAsync();
+            var result = await _context.LoanAccount.Where(c => c.LoanStatus == LoanStatus.LoanApplied || (c.LoanStatus == LoanStatus.loanApproved && c.LoanStatus !=LoanStatus.loanApproved).Take(count).ToListAsync();
             if (result == null)
             {
                 return new ServiceResponse<List<LoanAccount>>
