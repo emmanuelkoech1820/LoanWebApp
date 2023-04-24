@@ -4,14 +4,16 @@ using Apps.Data.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Loan.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230410155333_addedimages")]
+    partial class addedimages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,14 +195,11 @@ namespace Loan.API.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("ProfileId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PropertyModelId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Reference")
                         .HasColumnType("nvarchar(max)");
@@ -209,8 +208,6 @@ namespace Loan.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PropertyModelId");
 
                     b.ToTable("Images");
                 });
@@ -594,13 +591,6 @@ namespace Loan.API.Migrations
                     b.Navigation("BankTransferRequest");
                 });
 
-            modelBuilder.Entity("Apps.Data.Entities.Images", b =>
-                {
-                    b.HasOne("Apps.Data.Entities.PropertyModel", null)
-                        .WithMany("Images")
-                        .HasForeignKey("PropertyModelId");
-                });
-
             modelBuilder.Entity("Apps.Data.Entities.LoanHistory", b =>
                 {
                     b.HasOne("Apps.Data.Entities.LoanAccount", "LoanAccount")
@@ -620,11 +610,6 @@ namespace Loan.API.Migrations
             modelBuilder.Entity("Apps.Data.Entities.LoanAccount", b =>
                 {
                     b.Navigation("LoanHistories");
-                });
-
-            modelBuilder.Entity("Apps.Data.Entities.PropertyModel", b =>
-                {
-                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

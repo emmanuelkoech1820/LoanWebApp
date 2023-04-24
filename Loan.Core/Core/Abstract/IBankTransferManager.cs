@@ -30,8 +30,10 @@ namespace Apps.Core.Abstract
     public interface INyumbaniManager
     {
         Task<ServiceResponse<List<PropertyModel>>> GetAllProperty(string agentId);
-        Task<ServiceResponse> AddProperty(PropertyBindingModel model);
+        Task<ServiceResponse<object>> AddProperty(ImagesBindingModel model);
         Task<ServiceResponse> UpdateProperty(string reference, bool status);
+        Task<ServiceResponse<ImagesBindingModel>> FindImageAsync(string reference, string profileId);
+        Task<ServiceResponse> SaveImage(ImagesBindingModel model);
 
     }
 }

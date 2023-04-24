@@ -21,6 +21,11 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Core.Helpers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using static System.Collections.Specialized.BitVector32;
+using System.IO;
+using Apps.Core.Models.SMSModels;
 
 namespace WebApi.Controllers
 {
@@ -28,7 +33,7 @@ namespace WebApi.Controllers
     [Route("[controller]")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [AllowAnonymous]
-    public class PropertyController : BaseController
+    public class NyumbaniController : BaseController
     {
         private readonly IAccountService _accountService;
         private readonly INyumbaniManager _nyumbaniManager;
@@ -36,7 +41,7 @@ namespace WebApi.Controllers
         private readonly AppSettings _appSettings;
         private readonly IConfiguration _configuration;
 
-        public PropertyController(
+        public NyumbaniController(
             IAccountService accountService,
             IMapper mapper, INyumbaniManager nyumbaniManager, IOptions<AppSettings> appSettings, IConfiguration configuration)
         {
@@ -82,11 +87,11 @@ namespace WebApi.Controllers
 
         [HttpPost("add")]
 
-        public async Task<IActionResult> AddProperty(PropertyBindingModel model)
+        public async Task<IActionResult> AddProperty(ImagesBindingModel model)
         {
             var context = HttpContext;
             var user = await Token(context);
-            model.AgentId = user.Id;
+            model.AgentId = user.Id.ToString();
             model.ClientId = user.ClientId;
             return Ok(await _nyumbaniManager.AddProperty(model));
 
@@ -135,10 +140,37 @@ namespace WebApi.Controllers
                 StatusCode = ServiceStatusCode.SUCCESSFUL,
                 StatusMessage = StatusMessage.SUCCESSFUl,
                 ResponseObject = responses
-
             };
 
         }
+        [HttpGet("image/{reference}")]
+        public async Task<IActionResult> GetImage(string reference)
+        {
+            var context = HttpContext;
+            var user = await Token(context);
+            var product = await _nyumbaniManager.FindImageAsync( reference, user.Id.ToString());
 
+            if (product == null || !product.Successful)
+            {
+                return BadRequest(product);
+            }
+
+            //return File(product.Image, "image/jpeg");
+            return Ok(product);
+        }
+
+        [HttpPost("image")]
+        public async Task<IActionResult> UploadImage(ImagesBindingModel model)
+        {
+            var context = HttpContext;
+            var user = await Token(context);
+            model.ProfileId = user.Id.ToString();
+            var product = await _nyumbaniManager.SaveImage(model);
+            if (product == null || !product.Successful)
+            {
+                return BadRequest(product);
+            }
+            return Ok(product);
+        }
     }
 }

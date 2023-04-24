@@ -15,5 +15,7 @@ namespace Apps.Data.Entities
         public string Kitchens { get; set; }
         public string AdditionalInformation { get; set; }
         public bool IsEnabled { get; set; }
+        public ICollection<Images> Images { get; set; } = new List<Images>();
     }
+
 }

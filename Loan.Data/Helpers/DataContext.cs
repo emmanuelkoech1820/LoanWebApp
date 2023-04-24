@@ -13,6 +13,7 @@ namespace Apps.Data.Helpers
         public DbSet<PropertyModel> Property { get; set; }
         public DbSet<LoanRepayment> loanRepayment { get; set; }
         public DbSet<Otp> OTP { get; set; }
+        public DbSet<Images> Images { get; set; }
 
         private readonly IConfiguration Configuration;
 
