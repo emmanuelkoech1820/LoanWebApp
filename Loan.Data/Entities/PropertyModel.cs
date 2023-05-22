@@ -16,6 +16,8 @@ namespace Apps.Data.Entities
         public string AdditionalInformation { get; set; }
         public bool IsEnabled { get; set; }
         public ICollection<Images> Images { get; set; } = new List<Images>();
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
     }
 
 }

@@ -81,7 +81,9 @@ namespace Apps.Core.Core
                 Price = model.Price,
                 PropertyType = model.PropertyType,
                 IsEnabled = true,
-                Images = im
+                Images = im,
+                Longitude = model.Longitude,
+                Latitude = model.Latitude
             };
             foreach (var item in model.Image)
             {
@@ -168,7 +170,9 @@ namespace Apps.Core.Core
                 Bathrooms = product.Bathrooms,
                 Bedrooms = product.Bedrooms,
                 Description = product.Images.FirstOrDefault()?.Description,
-                Image = im
+                Image = im,
+                Latitude = product.Latitude,
+                Longitude = product.Longitude
 
             };
             return new ServiceResponse<ImagesBindingModel>
